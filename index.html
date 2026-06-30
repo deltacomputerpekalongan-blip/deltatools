@@ -1,0 +1,858 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delta Workspace V4 - Kasir Online Cloud</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<style>
+* { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+body { background: #f4f7fb; color: #222; min-height: 100vh; }
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar Navigasi */
+.sidebar { width: 64px; background: #1e293b; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 16px; flex-shrink: 0; }
+.icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: 0.2s; color: rgba(255,255,255,0.7); }
+.icon:hover, .icon.active { background: #2563eb; color: #fff; }
+
+/* Struktur Area Utama */
+.main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; }
+header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #ddd; font-size: 22px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.app-mode-title { font-size: 14px; background: #e2e8f0; color: #334155; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+
+/* Konten Tab Aktif / Sembunyi */
+.tab-panel { display: none; padding: 24px; }
+.tab-panel.active { display: grid; }
+
+/* Layout Grid Kasir */
+#panel-kasir { grid-template-columns: 2fr 1fr; gap: 20px; }
+.card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,.08); display: flex; flex-direction: column; gap: 12px; height: max-content; }
+.row-item { display: grid; grid-template-columns: 60px 2fr 1fr; gap: 10px; align-items: center; }
+input, select, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+.summary { border-top: 1px dashed #ddd; padding-top: 12px; margin-top: 8px; }
+.summary div { margin: 8px 0; font-size: 18px; display: flex; justify-content: space-between; }
+
+/* Desain Komponen Tombol global */
+button { padding: 12px 18px; border: none; border-radius: 10px; background: #2563eb; color: #fff; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; text-align: center; }
+button:hover { background: #1d4ed8; }
+.btn-secondary { background: #e2e8f0; color: #334155; margin-bottom: 10px; }
+.btn-secondary:hover { background: #cbd5e1; }
+.history .item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 10px; background: #f8fafc; }
+.menu { float: right; font-weight: bold; color: #64748b; }
+details { margin-top: 8px; font-size: 14px; }
+summary { cursor: pointer; color: #2563eb; font-weight: 600; }
+.export a { display: block; padding: 6px 0; color: #2563eb; text-decoration: none; font-size: 14px; cursor: pointer; }
+.export a:hover { text-decoration: underline; }
+footer { padding: 16px 24px; font-size: 12px; color: #666; margin-top: auto; border-top: 1px solid #eee; background: #fff; }
+
+/* Layout Grid Komponen Konverter */
+#panel-konverter { grid-template-columns: 1fr; max-width: 750px; margin: 0 auto; width: 100%; gap: 20px; }
+.converter-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+.converter-header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+.converter-header h2 { font-size: 20px; color: #fff; margin-bottom: 4px; }
+.converter-header p { font-size: 13px; color: #94a3b8; }
+
+/* Layout Grid Komponen Notes Splitted */
+#panel-notes { grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
+.input-group-note { display: flex; gap: 8px; margin-bottom: 10px; }
+.input-group-note input { flex: 1; }
+
+/* Tampilan list item dinamis */
+.list-wrapper { display: flex; flex-direction: column; gap: 8px; max-height: 450px; overflow-y: auto; padding-right: 4px; }
+.note-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; gap: 10px; }
+.note-item .content-text { font-size: 14px; color: #1e293b; line-height: 1.4; word-break: break-word; }
+.note-item .timestamp { font-size: 11px; color: #94a3b8; margin-top: 4px; display: block; }
+.note-item .btn-del-note { background: transparent; color: #ef4444; padding: 4px 8px; font-size: 14px; border-radius: 6px; cursor: pointer; }
+.note-item .btn-del-note:hover { background: #fee2e2; }
+
+/* ToDo List style */
+.todo-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; gap: 10px; }
+.todo-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+.todo-checkbox { width: 18px; height: 18px; cursor: pointer; }
+.todo-text-wrapper { flex: 1; }
+.todo-text { font-size: 14px; color: #1e293b; word-break: break-word; }
+.todo-item.done .todo-text { text-decoration: line-through; color: #94a3b8; }
+
+/* Sub-Tab Internal Konverter */
+.subtab-container { display: flex; background: rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 4px; margin-bottom: 20px; gap: 4px; }
+.subtab-btn { flex: 1; padding: 10px 5px; border: none; background: transparent; color: #94a3b8; font-size: 13px; font-weight: 600; border-radius: 7px; cursor: pointer; transition: 0.2s; text-align: center; }
+.subtab-btn.active { background: rgba(255, 255, 255, 0.15); color: #ffffff; }
+.subtab-content { display: none; }
+.subtab-content.active { display: block; }
+
+/* Area Seret Drop Berkas */
+.drop-area { border: 2px dashed rgba(255, 255, 255, 0.3); border-radius: 14px; padding: 30px 20px; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(255, 255, 255, 0.03); margin-bottom: 15px; position: relative; }
+.drop-area.highlight { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+.drop-area:hover { border-color: rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.05); }
+.file-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.upload-icon { font-size: 40px; color: #64748b; margin-bottom: 8px; }
+.drop-text { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+.drop-subtext { color: #64748b; font-size: 12px; }
+
+/* Informasi File Terpilih */
+.file-info { background: rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 12px; margin-bottom: 15px; display: none; align-items: center; justify-content: space-between; border: 1px solid rgba(255, 255, 255, 0.1); }
+.file-name-display { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.ready-badge { background: #10b981; color: white; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 6px; }
+
+/* Daftar Urutan File Terpilih (Khusus Merger) */
+.selected-files-list { list-style: none; margin-bottom: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); display: none; max-height: 150px; overflow-y: auto; }
+.selected-files-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.04); border-radius: 6px; margin-bottom: 4px; font-size: 12px; }
+.file-index { background: rgba(255,255,255,0.2); border-radius: 4px; padding: 1px 5px; font-weight: bold; margin-right: 6px; }
+
+/* Opsi Baris Pengaturan Komponen Konverter */
+.control-group { margin-bottom: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); }
+.control-group label { font-size: 13px; font-weight: 600; color: #cbd5e1; }
+.option-buttons { display: flex; flex: 1; gap: 6px; }
+.option-btn { flex: 1; padding: 8px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.02); color: #cbd5e1; cursor: pointer; transition: 0.2s; text-align: center; }
+.option-btn.active { background: #2563eb; color: #ffffff; border-color: #3b82f6; font-weight: 600; }
+.option-btn:hover:not(.active) { background: rgba(255,255,255,0.08); }
+
+/* Progress & Status Batang Proses */
+.status-box { margin: 12px 0; padding: 10px; border-radius: 8px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.05); }
+.status-info { background: rgba(59, 130, 246, 0.1); color: #93c5fd; }
+.status-success { background: rgba(16, 185, 129, 0.1); color: #6ee7b7; }
+.status-error { background: rgba(239, 68, 68, 0.1); color: #fca5a5; }
+.progress-container { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin: 12px 0; overflow: hidden; display: none; }
+.progress-fill { height: 100%; width: 0%; background: #2563eb; border-radius: 3px; transition: width 0.1s ease; }
+
+/* Area Download Hasil Gambar/PDF */
+.download-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: none; }
+.download-section h3 { font-size: 15px; margin-bottom: 10px; }
+.download-list { list-style: none; max-height: 200px; overflow-y: auto; }
+.download-link { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; color: #fff; text-decoration: none; font-size: 13px; margin-bottom: 6px; }
+.download-link:hover { background: rgba(255,255,255,0.08); transform: translateX(2px); }
+.download-action { color: #3b82f6; font-weight: 600; }
+.btn-zip { background: #7c3aed; display: none; margin-top: 10px; }
+.btn-zip:hover { background: #6d28d9; }
+
+/* Styling Tersembunyi khusus Template Nota TXT / PNG Kasir */
+#invoice-template { position: absolute; left: -9999px; top: -9999px; width: 320px; background: #fff; padding: 20px; font-family: 'Courier New', Courier, monospace; color: #000; }
+.inv-header { text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px; }
+.inv-meta { font-size: 12px; margin-bottom: 10px; }
+.inv-table { width: 100%; font-size: 12px; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+.inv-table th { text-align: left; border-bottom: 1px dashed #000; }
+.inv-summary { font-size: 13px; text-align: right; }
+.inv-footer { text-align: center; font-size: 11px; margin-top: 15px; border-top: 1px dashed #000; padding-top: 5px; }
+
+/* Modal Pratinjau Nota */
+.modal-preview { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+.modal-content { background-color: #fff; padding: 20px; border-radius: 12px; max-width: 360px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); position: relative; }
+.modal-close { position: absolute; top: 10px; right: 15px; font-size: 20px; font-weight: bold; cursor: pointer; color: #64748b; }
+.modal-close:hover { color: #1e293b; }
+.modal-body-invoice { background: #fff; max-height: 70vh; overflow-y: auto; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; }
+
+canvas { display: none; }
+@media(max-width:900px){ #panel-kasir { grid-template-columns: 1fr; } #panel-notes { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="sidebar">
+        <div class="icon active" data-tab-target="panel-kasir" title="Kasir">🛒</div>
+        <div class="icon" data-tab-target="panel-notes" title="Catatan Teks & ToDo">📝</div>
+        <div class="icon" data-tab-target="panel-konverter" title="Konverter PDF & Gambar">🔄</div>
+    </div>
+    
+    <div class="main">
+        <header>
+            <span>Delta Workspace V4</span>
+            <span class="app-mode-title" id="app-current-mode">Mode: Kasir Cloud (Online)</span>
+        </header>
+        
+        <div class="tab-panel active" id="panel-kasir">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <h2>Kasir Cloud</h2>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label for="select-user" style="font-size: 13px; font-weight: bold; color: #475569;">Kasir:</label>
+                        <select id="select-user" style="padding: 6px 12px; font-weight: 600; color: #1e293b; background: #f1f5f9; border-color: #cbd5e1;">
+                            <option value="Dias">Dias</option>
+                            <option value="Novi">Novi</option>
+                            <option value="Rosita">Rosita</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-secondary" id="btn-tambah-baris" style="margin-top: 10px;">+ Tambah Baris Barang</button>
+                
+                <div id="daftar-barang">
+                    <div class="row-item">
+                        <input type="number" class="qty" value="1" min="1" placeholder="Qty">
+                        <input type="text" class="nama" placeholder="Nama Barang">
+                        <input type="number" class="harga" placeholder="Harga (Rp)" min="0">
+                    </div>
+                </div>
+                
+                <div class="summary">
+                    <div><span><b>Total:</b></span> <span id="txt-total">Rp0</span></div>
+                    <div><span><b>Bayar:</b></span> <input type="number" id="input-bayar" value="0" min="0" style="width: 150px; text-align: right;"></div>
+                    <div><span><b id="lbl-kembalian">Kembalian:</b></span> <span id="txt-kembalian">Rp0</span></div>
+                </div>
+                <button id="btn-simpan">💾 Simpan Transaksi Ke Cloud</button>
+            </div>
+
+            <div class="card history">
+                <h2>Riwayat Transaksi Toko</h2>
+                <input type="text" id="cari-transaksi" placeholder="🔍 Cari transaksi atau nama kasir...">
+                
+                <div id="status-sync" style="font-size:12px; color:#ef4444; font-weight:600; margin-top:4px;">🔄 Menghubungkan ke server cloud...</div>
+                
+                <div id="list-riwayat" style="margin-top: 12px;"></div>
+
+                <details style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                    <summary><b>Backup & Manual Action</b></summary>
+                    <div class="export" style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+                        <a id="btn-export-hari-ini" style="font-weight: 600; color: #16a34a;">📤 Eksport Transaksi Hari Ini (.json)</a>
+                        <a id="btn-reset" style="color: #dc2626; margin-top: 10px;">Reset Semua Riwayat Cloud</a>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="panel-notes">
+            <div class="card">
+                <div style="border-bottom: 1px solid #eee; padding-bottom: 6px;">
+                    <h3>📝 Catatan Internal Toko</h3>
+                    <p style="font-size: 11px; color: #64748b;">Daftar memo ringkas / informasi operasional toko.</p>
+                </div>
+                <div class="input-group-note">
+                    <input type="text" id="input-catatan-teks" placeholder="Ketik catatan baru di sini...">
+                    <button id="btn-tambah-catatan" style="padding: 10px 16px;">+ Tambah</button>
+                </div>
+                <div class="list-wrapper" id="wrapper-catatan-list">
+                    </div>
+            </div>
+
+            <div class="card">
+                <div style="border-bottom: 1px solid #eee; padding-bottom: 6px;">
+                    <h3>✅ Daftar Tugas Kasir (To-Do)</h3>
+                    <p style="font-size: 11px; color: #64748b;">Ceklist pekerjaan harian kasir yang harus diselesaikan.</p>
+                </div>
+                <div class="input-group-note">
+                    <input type="text" id="input-todo-teks" placeholder="Ketik tugas / checklist baru...">
+                    <button id="btn-tambah-todo" style="padding: 10px 16px; background: #10b981;">+ Tambah</button>
+                </div>
+                <div class="list-wrapper" id="wrapper-todo-list">
+                    </div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="panel-konverter">
+            <div class="converter-card">
+                <div class="converter-header">
+                    <h2>Konversi & Gabung PDF</h2>
+                    <p>Proses konverter lokal tetap bekerja 100% aman & privasi penuh</p>
+                </div>
+
+                <div class="subtab-container">
+                    <button class="subtab-btn active" data-subtab="pdf2jpg">PDF ➜ JPG</button>
+                    <button class="subtab-btn" data-subtab="jpg2pdf">JPG ➜ PDF</button>
+                    <button class="subtab-btn" data-subtab="pdfmerger">🧩 PDF Merger</button>
+                </div>
+
+                <div class="subtab-content active" id="pdf2jpg">
+                    <div class="drop-area" id="dropAreaPdf">
+                        <input type="file" id="pdfFile" accept=".pdf" class="file-input">
+                        <div class="upload-icon">📄</div>
+                        <div class="drop-text">Seret file PDF ke sini atau klik pilih berkas</div>
+                    </div>
+                    <div class="file-info" id="fileInfoPdf">
+                        <div class="file-name-display"><span id="fileNamePdf"></span></div>
+                    </div>
+                    <div class="control-group">
+                        <label>Resolusi Kerapatan Gambar:</label>
+                        <input type="number" id="dpiInput" value="300" min="72" max="600" style="width:75px; text-align:center;">
+                    </div>
+                    <button id="convertPdfBtn" style="width: 100%;">Mulai Ekstrak ke JPG</button>
+                    <button id="downloadZipBtn" class="btn-primary btn-zip" style="width: 100%;">📦 Unduh ZIP</button>
+                    <div class="progress-container" id="progressBarPdf"><div class="progress-fill" id="progressFillPdf"></div></div>
+                    <div id="statusPdf" class="status-box status-info">Menunggu PDF...</div>
+                    <div class="download-section" id="resultAreaPdf"><ul class="download-list" id="downloadListPdf"></ul></div>
+                </div>
+
+                <div class="subtab-content" id="jpg2pdf">
+                    <div class="drop-area" id="dropAreaJpg">
+                        <input type="file" id="jpgFile" accept="image/jpeg, image/png" multiple class="file-input">
+                        <div class="upload-icon">🖼️</div>
+                        <div class="drop-text">Seret GAMBAR ke sini atau klik pilih berkas</div>
+                    </div>
+                    <div class="file-info" id="fileInfoJpg"><div class="file-name-display"><span id="fileNameJpg"></span></div></div>
+                    <div class="control-group">
+                        <label>Metode Output PDF:</label>
+                        <div class="option-buttons" id="modeJpgGroup">
+                            <div class="option-btn active" data-value="merge">Gabung Jadi 1 PDF</div>
+                            <div class="option-btn" data-value="split">Pisah File</div>
+                        </div>
+                    </div>
+                    <button id="convertJpgBtn" style="width: 100%; background: #10b981;">Proses ke PDF</button>
+                    <div id="statusJpg" class="status-box status-info">Menunggu gambar...</div>
+                    <div class="download-section" id="resultAreaJpg"><ul class="download-list" id="downloadListJpg"></ul></div>
+                </div>
+
+                <div class="subtab-content" id="pdfmerger">
+                    <div class="drop-area" id="dropAreaMerge">
+                        <input type="file" id="mergeFiles" accept=".pdf" multiple class="file-input">
+                        <div class="upload-icon">📂</div>
+                        <div class="drop-text">Seret beberapa file PDF ke sini</div>
+                    </div>
+                    <ul class="selected-files-list" id="selectedMergeFilesList"></ul>
+                    <button id="mergePdfBtn" style="width: 100%; background: #ec4899;">🧩 Gabungkan PDF</button>
+                    <div id="statusMerge" class="status-box status-info">Menunggu berkas...</div>
+                    <div class="download-section" id="resultAreaMerge"><ul class="download-list" id="downloadListMerge"></ul></div>
+                </div>
+            </div>
+        </div>
+        <footer>Delta Workspace V4 Cloud Server Powered UI</footer>
+    </div>
+</div>
+
+<div id="invoice-template">
+    <div class="inv-header">DELTA COMPUTER - PRINTING<br><span style="font-size: 11px; font-weight: normal;">Nota Pembelian Resmi</span></div>
+    <div class="inv-meta">ID: <span id="inv-id"></span><br>Kasir: <span id="inv-user" style="font-weight: bold;"></span><br>Tgl: <span id="inv-tgl"></span></div>
+    <table class="inv-table" id="inv-items"><thead><tr><th>Item</th><th>Qty</th><th style="text-align: right;">Total</th></tr></thead><tbody></tbody></table>
+    <div class="inv-summary">
+        <div>Total: <span id="inv-total"></span></div>
+        <div>Bayar: <span id="inv-bayar"></span></div>
+        <div style="font-weight: bold;">Kembali: <span id="inv-kembali"></span></div>
+    </div>
+    <div class="inv-footer">Terima Kasih Atas Kunjungan Anda<br>Delta Computer & Printing</div>
+</div>
+
+<div class="modal-preview" id="modalPreview">
+    <div class="modal-content">
+        <span class="modal-close" id="closeModal">&times;</span>
+        <h3 style="margin-bottom: 12px; font-size: 16px;">📄 Pratinjau Nota</h3>
+        <div class="modal-body-invoice" id="modalInvoiceBody"></div>
+    </div>
+</div>
+
+<script>
+/* INSIALISASI INTEGRASI FIREBASE DATA AKUN ANDA */
+const firebaseConfig = {
+  apiKey: "AIzaSyBnygBy3w5Ue9cOKRxuuKqCDGVt2jt8waM",
+  authDomain: "deltatools-96d22.firebaseapp.com",
+  databaseURL: "https://deltatools-96d22-default-rtdb.europe-west1.firebasedatabase.app/",
+  projectId: "deltatools-96d22",
+  storageBucket: "deltatools-96d22.firebasestorage.app",
+  messagingSenderId: "394544545294",
+  appId: "1:394544545294:web:9c44fc3cecbdd14a76465f"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const riwayatRef = db.ref('riwayat_kasir');
+const notesListRef = db.ref('catatan_toko_list');
+const todoListRef = db.ref('todo_toko_list');
+
+/* NAVIGATION SYSTEM */
+const sidebarIcons = document.querySelectorAll('.sidebar .icon');
+const tabPanels = document.querySelectorAll('.tab-panel');
+const appCurrentMode = document.getElementById('app-current-mode');
+
+sidebarIcons.forEach(icon => {
+    icon.addEventListener('click', () => {
+        const target = icon.getAttribute('data-tab-target');
+        if (!target) return;
+        sidebarIcons.forEach(i => i.classList.remove('active'));
+        tabPanels.forEach(p => p.classList.remove('active'));
+        icon.classList.add('active');
+        document.getElementById(target).classList.add('active');
+        if(target === 'panel-kasir') appCurrentMode.innerText = "Mode: Kasir Cloud (Online)";
+        if(target === 'panel-notes') appCurrentMode.innerText = "Mode: Catatan Teks & ToDo Cloud";
+        if(target === 'panel-konverter') appCurrentMode.innerText = "Mode: Alat Konverter Media";
+    });
+});
+
+/* SCRIPT UTAMA KASIR CLOUD REALTIME */
+const selectUser = document.getElementById('select-user');
+const daftarBarangContainer = document.getElementById('daftar-barang');
+const btnTambahBaris = document.getElementById('btn-tambah-baris');
+const txtTotal = document.getElementById('txt-total');
+const inputBayar = document.getElementById('input-bayar');
+const txtKembalian = document.getElementById('txt-kembalian');
+const lblKembalian = document.getElementById('lbl-kembalian');
+const btnSimpan = document.getElementById('btn-simpan');
+const listRiwayat = document.getElementById('list-riwayat');
+const cariTransaksi = document.getElementById('cari-transaksi');
+const btnReset = document.getElementById('btn-reset');
+const btnExportHariIni = document.getElementById('btn-export-hari-ini');
+const statusSync = document.getElementById('status-sync');
+
+let totalBelanja = 0;
+let dataRiwayat = []; 
+
+function dapatkanTanggalHariIni() {
+    const tgl = new Date();
+    return `${tgl.getDate()} ${tgl.toLocaleString('id-ID', { month: 'long' })} ${tgl.getFullYear()}`;
+}
+function formatRupiah(angka) { return 'Rp' + parseInt(angka).toLocaleString('id-ID'); }
+
+btnTambahBaris.addEventListener('click', () => {
+    const row = document.createElement('div');
+    row.className = 'row-item'; row.style.marginTop = '8px';
+    row.innerHTML = `<input type="number" class="qty" value="1" min="1" placeholder="Qty"><input type="text" class="nama" placeholder="Nama Barang"><input type="number" class="harga" placeholder="Harga (Rp)">`;
+    daftarBarangContainer.appendChild(row);
+    rekamEventInput();
+});
+
+function hitungTotal() {
+    totalBelanja = 0;
+    daftarBarangContainer.querySelectorAll('.row-item').forEach(row => {
+        const qty = parseFloat(row.querySelector('.qty').value) || 0;
+        const harga = parseFloat(row.querySelector('.harga').value) || 0;
+        totalBelanja += qty * harga;
+    });
+    txtTotal.innerText = formatRupiah(totalBelanja);
+    hitungKembalian();
+}
+function hitungKembalian() {
+    const bayar = parseFloat(inputBayar.value) || 0;
+    const selisih = bayar - totalBelanja;
+
+    if (selisih < 0) {
+        lblKembalian.innerText = 'Kekurangan:';
+        txtKembalian.innerText = formatRupiah(Math.abs(selisih));
+        txtKembalian.style.color = '#ef4444';
+        txtKembalian.style.fontWeight = 'bold';
+    } else {
+        lblKembalian.innerText = 'Kembalian:';
+        txtKembalian.innerText = formatRupiah(selisih);
+        txtKembalian.style.color = '';
+        txtKembalian.style.fontWeight = '';
+    }
+}
+function rekamEventInput() {
+    daftarBarangContainer.querySelectorAll('input').forEach(input => {
+        input.removeEventListener('input', hitungTotal); input.addEventListener('input', hitungTotal);
+    });
+}
+inputBayar.addEventListener('input', hitungKembalian);
+
+riwayatRef.on('value', (snapshot) => {
+    const cloudData = snapshot.val();
+    dataRiwayat = [];
+    if (cloudData) {
+        Object.keys(cloudData).forEach(key => {
+            dataRiwayat.push({ firebaseKey: key, ...cloudData[key] });
+        });
+        dataRiwayat.sort((a, b) => b.id - a.id);
+    }
+    statusSync.innerText = "✅ Cloud Tersinkronisasi (Real-time)";
+    statusSync.style.color = "#059669";
+    tampilkanRiwayat(cariTransaksi.value);
+});
+
+btnSimpan.addEventListener('click', () => {
+    if (totalBelanja <= 0) return alert('Total belanja masih Rp0.');
+    const bayar = parseFloat(inputBayar.value) || 0;
+    const statusTransaksi = bayar < totalBelanja ? 'KURANG' : 'LUNAS';
+
+    const items = [];
+    daftarBarangContainer.querySelectorAll('.row-item').forEach(row => {
+        const qty = parseFloat(row.querySelector('.qty').value) || 0;
+        const nama = row.querySelector('.nama').value || 'Barang Umum';
+        const harga = parseFloat(row.querySelector('.harga').value) || 0;
+        if(qty > 0 && harga > 0) items.push({ nama, qty, harga, totalItem: qty * harga });
+    });
+
+    const transaksiBaru = {
+        id: Date.now(),
+        user: selectUser.value,
+        tanggal: dapatkanTanggalHariIni(),
+        total: totalBelanja,
+        bayar: bayar,
+        kembalian: bayar - totalBelanja,
+        status: statusTransaksi,
+        items: items
+    };
+
+    riwayatRef.push(transaksiBaru).then(() => {
+        daftarBarangContainer.innerHTML = `<div class="row-item"><input type="number" class="qty" value="1" min="1" placeholder="Qty"><input type="text" class="nama" placeholder="Nama Barang"><input type="number" class="harga" placeholder="Harga (Rp)"></div>`;
+        inputBayar.value = 0; hitungTotal(); rekamEventInput();
+    }).catch(err => alert("Gagal menyimpan: " + err));
+});
+
+function tampilkanRiwayat(filter = '') {
+    listRiwayat.innerHTML = '';
+    const filteredData = dataRiwayat.filter(item => 
+        item.tanggal.toLowerCase().includes(filter.toLowerCase()) || 
+        item.total.toString().includes(filter) ||
+        (item.user && item.user.toLowerCase().includes(filter.toLowerCase()))
+    );
+    if(filteredData.length === 0) {
+        listRiwayat.innerHTML = '<p style="color:#888; font-size:14px;">Tidak ada riwayat transaksi cloud.</p>';
+        return;
+    }
+    filteredData.forEach(item => {
+        const userDisplay = item.user ? item.user : 'Umum';
+        const statusColor = item.status === 'KURANG' ? '#ef4444' : 'green';
+        const div = document.createElement('div'); div.className = 'item';
+        div.innerHTML = `
+            <b>${item.tanggal}</b> <span style="font-size:11px; background:#e2e8f0; padding:2px 6px; border-radius:4px; margin-left:5px;">👤 ${userDisplay}</span><span class="menu">⋮</span><br>
+            ${formatRupiah(item.total)} - <span style="color:${statusColor}; font-weight:bold;">${item.status}</span>
+            <details>
+                <summary>Aksi Dokumen</summary>
+                <div class="export" style="margin-top: 6px;">
+                    <a onclick="pratinjauNota(${item.id})">📄 Pratinjau Nota</a>
+                    <a onclick="eksportTXT(${item.id})">📥 Cetak TXT</a>
+                    <a onclick="eksportPNG(${item.id})">💾 Cetak PNG</a>
+                    <a onclick="hapusCloud('${item.firebaseKey}')" style="color: #dc2626; margin-top:4px;">❌ Hapus Dari Cloud</a>
+                </div>
+            </details>
+        `;
+        listRiwayat.appendChild(div);
+    });
+}
+
+// FUNGSI PRATINJAU NOTA (MODAL POPUP)
+window.pratinjauNota = function(id) {
+    const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
+    const userDisplay = tx.user ? tx.user : 'Umum';
+    let itemRows = '';
+    tx.items.forEach(item => {
+        itemRows += `<tr><td>${item.nama}</td><td>x${item.qty}</td><td style="text-align: right;">${formatRupiah(item.totalItem)}</td></tr>`;
+    });
+
+    const htmlContent = `
+        <div style="font-family: 'Courier New', Courier, monospace; color: #000; font-size: 13px;">
+            <div style="text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px;">DELTA COMPUTER - PRINTING<br><span style="font-size: 11px; font-weight: normal;">Nota Pembelian Resmi</span></div>
+            <div style="margin-bottom: 10px; font-size: 11px;">ID: ${tx.id}<br>Kasir: <b>${userDisplay}</b><br>Tgl: ${tx.tanggal}</div>
+            <table style="width: 100%; font-size: 11px; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px;">
+                <thead><tr><th style="text-align: left;">Item</th><th style="text-align: left;">Qty</th><th style="text-align: right;">Total</th></tr></thead>
+                <tbody>${itemRows}</tbody>
+            </table>
+            <div style="text-align: right; font-size: 12px; display: flex; flex-direction: column; gap: 2px;">
+                <div>Total: ${formatRupiah(tx.total)}</div>
+                <div>Bayar: ${formatRupiah(tx.bayar || tx.total)}</div>
+                <div style="font-weight: bold;">Kembali: ${formatRupiah(tx.kembalian || 0)}</div>
+            </div>
+            <div style="text-align: center; font-size: 10px; margin-top: 15px; border-top: 1px dashed #000; padding-top: 5px;">Terima Kasih Atas Kunjungan Anda<br>Delta Computer & Printing</div>
+        </div>
+    `;
+    document.getElementById('modalInvoiceBody').innerHTML = htmlContent;
+    document.getElementById('modalPreview').style.display = 'flex';
+}
+
+// SISTEM PENUTUP MODAL MODAL
+document.getElementById('closeModal').addEventListener('click', () => { document.getElementById('modalPreview').style.display = 'none'; });
+window.addEventListener('click', (e) => { const modal = document.getElementById('modalPreview'); if (e.target === modal) modal.style.display = 'none'; });
+
+window.eksportTXT = function(id) {
+    const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
+    const n = "\r\n"; const userDisplay = tx.user ? tx.user : 'Umum';
+    let txtContent = `========================================` + n + `       DELTA COMPUTER - PRINTING        ` + n + `========================================` + n;
+    txtContent += `ID Transaksi : ${tx.id}` + n + `Kasir        : ${userDisplay}` + n + `Tanggal      : ${tx.tanggal}` + n + `Status       : ${tx.status}` + n + `----------------------------------------` + n;
+    tx.items.forEach(item => { txtContent += `${item.nama.padEnd(17)} ${item.qty.toString().padEnd(5)} ${item.harga.toLocaleString('id-ID').padEnd(9)} ${item.totalItem.toLocaleString('id-ID')}` + n; });
+    txtContent += `----------------------------------------` + n + `TOTAL BLANJA : Rp${tx.total.toLocaleString('id-ID')}` + n;
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Nota_Delta_${tx.id}.txt`; link.click();
+}
+
+window.eksportPNG = function(id) {
+    const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
+    document.getElementById('inv-id').innerText = tx.id;
+    document.getElementById('inv-user').innerText = tx.user ? tx.user : 'Umum';
+    document.getElementById('inv-tgl').innerText = tx.tanggal;
+    document.getElementById('inv-total').innerText = formatRupiah(tx.total);
+    document.getElementById('inv-bayar').innerText = formatRupiah(tx.bayar || tx.total);
+    document.getElementById('inv-kembali').innerText = formatRupiah(tx.kembalian || 0);
+    const tbody = document.querySelector('#inv-items tbody'); tbody.innerHTML = '';
+    tx.items.forEach(item => {
+        const tr = document.createElement('tr'); tr.innerHTML = `<td>${item.nama}</td><td>x${item.qty}</td><td style="text-align: right;">${formatRupiah(item.totalItem)}</td>`; tbody.appendChild(tr);
+    });
+    const targetElement = document.getElementById('invoice-template'); targetElement.style.position = 'static';
+    html2canvas(targetElement, { scale: 2 }).then(canvas => {
+        targetElement.style.position = 'absolute'; targetElement.style.left = '-9999px'; targetElement.style.top = '-9999px';
+        const link = document.createElement('a'); link.download = `Nota_Delta_${tx.id}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+    });
+}
+
+window.hapusCloud = function(firebaseKey) {
+    if(confirm('Hapus transaksi ini dari cloud?')) db.ref('riwayat_kasir/' + firebaseKey).remove();
+}
+btnExportHariIni.addEventListener('click', (e) => {
+    e.preventDefault(); const dataHariIni = dataRiwayat.filter(item => item.tanggal === dapatkanTanggalHariIni());
+    if (dataHariIni.length === 0) return alert('Belum ada transaksi hari ini!');
+    const dataBlob = new Blob([JSON.stringify(dataHariIni, null, 2)], { type: 'application/json;charset=utf-8' });
+    const link = document.createElement('a'); link.href = URL.createObjectURL(dataBlob); link.download = `Backup_DeltaCloud.json`; link.click();
+});
+btnReset.addEventListener('click', (e) => { e.preventDefault(); if(confirm('Bersihkan database cloud?')) riwayatRef.remove(); });
+
+
+/* SCRIPT KHUSUS: MANAJEMEN CATATAN LIST & TO-DO CLOUD REALTIME */
+const inputCatatanTeks = document.getElementById('input-catatan-teks');
+const btnTambahCatatan = document.getElementById('btn-tambah-catatan');
+const wrapperCatatanList = document.getElementById('wrapper-catatan-list');
+
+const inputTodoTeks = document.getElementById('input-todo-teks');
+const btnTambahTodo = document.getElementById('btn-tambah-todo');
+const wrapperTodoList = document.getElementById('wrapper-todo-list');
+
+function dapatkanWaktuLengkap() {
+    const d = new Date();
+    const tglStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    const jamStr = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    return `${tglStr} - ${jamStr}`;
+}
+
+// 1. MANAJEMEN KOLOM CATATAN (NOTES LIST)
+btnTambahCatatan.addEventListener('click', () => {
+    const teks = inputCatatanTeks.value.trim();
+    if(!teks) return;
+    
+    notesListRef.push({
+        teks: teks,
+        waktu: dapatkanWaktuLengkap()
+    }).then(() => { inputCatatanTeks.value = ''; });
+});
+
+notesListRef.on('value', (snapshot) => {
+    wrapperCatatanList.innerHTML = '';
+    const data = snapshot.val();
+    if(!data) {
+        wrapperCatatanList.innerHTML = '<p style="color:#888; font-size:13px; text-align:center; padding:20px 0;">Belum ada catatan.</p>';
+        return;
+    }
+    Object.keys(data).forEach(key => {
+        const item = data[key];
+        const div = document.createElement('div');
+        div.className = 'note-item';
+        div.innerHTML = `
+            <div style="flex:1;">
+                <div class="content-text">${item.teks}</div>
+                <span class="timestamp">📅 ${item.waktu}</span>
+            </div>
+            <button class="btn-del-note" onclick="hapusCatatanItem('${key}')" title="Hapus">🗑️</button>
+        `;
+        wrapperCatatanList.appendChild(div);
+    });
+});
+window.hapusCatatanItem = function(key) { notesListRef.child(key).remove(); };
+
+
+// 2. MANAJEMEN KOLOM DAFTAR TUGAS (TO-DO LIST)
+btnTambahTodo.addEventListener('click', () => {
+    const teks = inputTodoTeks.value.trim();
+    if(!teks) return;
+
+    todoListRef.push({
+        teks: teks,
+        selesai: false,
+        waktu: dapatkanWaktuLengkap()
+    }).then(() => { inputTodoTeks.value = ''; });
+});
+
+todoListRef.on('value', (snapshot) => {
+    wrapperTodoList.innerHTML = '';
+    const data = snapshot.val();
+    if(!data) {
+        wrapperTodoList.innerHTML = '<p style="color:#888; font-size:13px; text-align:center; padding:20px 0;">Tidak ada tugas hari ini.</p>';
+        return;
+    }
+    Object.keys(data).forEach(key => {
+        const item = data[key];
+        const div = document.createElement('div');
+        div.className = `todo-item ${item.selesai ? 'done' : ''}`;
+        div.innerHTML = `
+            <div class="todo-left">
+                <input type="checkbox" class="todo-checkbox" ${item.selesai ? 'checked' : ''} onclick="toggleStatusTodo('${key}', ${item.selesai})">
+                <div class="todo-text-wrapper">
+                    <div class="todo-text">${item.teks}</div>
+                    <span class="timestamp" style="color: #a1a1aa;">📅 ${item.waktu}</span>
+                </div>
+            </div>
+            <button class="btn-del-note" onclick="hapusTodoItem('${key}')" title="Hapus">🗑️</button>
+        `;
+        wrapperTodoList.appendChild(div);
+    });
+});
+window.toggleStatusTodo = function(key, statusSaatIni) { todoListRef.child(key).update({ selesai: !statusSaatIni }); };
+window.hapusTodoItem = function(key) { todoListRef.child(key).remove(); };
+
+
+/* LOGIKA SCRIPT ALAT KONVERTER */
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+const subtabButtons = document.querySelectorAll('.subtab-btn');
+const subtabContents = document.querySelectorAll('.subtab-content');
+subtabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        subtabButtons.forEach(b => b.classList.remove('active')); subtabContents.forEach(c => c.classList.remove('active'));
+        btn.classList.add('active'); document.getElementById(btn.dataset.subtab).classList.add('active');
+    });
+});
+
+function cekUkuranFile(file) {
+    const MAX_SIZE = 25 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+        alert(`⚠️ Ukuran file "${file.name}" terlalu besar! Maksimal ukuran file adalah 25 MB.`);
+        return false;
+    }
+    return true;
+}
+
+// PDF KE JPG
+const pdfFileInput = document.getElementById('pdfFile'); const dropAreaPdf = document.getElementById('dropAreaPdf');
+const fileInfoPdf = document.getElementById('fileInfoPdf'); const fileNamePdf = document.getElementById('fileNamePdf');
+const dpiInput = document.getElementById('dpiInput'); const convertPdfBtn = document.getElementById('convertPdfBtn');
+const downloadZipBtn = document.getElementById('downloadZipBtn'); const statusPdf = document.getElementById('statusPdf');
+const resultAreaPdf = document.getElementById('resultAreaPdf'); const downloadListPdf = document.getElementById('downloadListPdf');
+const progressBarPdf = document.getElementById('progressBarPdf'); const progressFillPdf = document.getElementById('progressFillPdf');
+let generatedImages = [];
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropAreaPdf.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }); });
+['dragenter', 'dragover'].forEach(e => dropAreaPdf.addEventListener(e, () => dropAreaPdf.classList.add('highlight')));
+['dragleave', 'drop'].forEach(e => dropAreaPdf.addEventListener(e, () => dropAreaPdf.classList.remove('highlight')));
+dropAreaPdf.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { pdfFileInput.files = e.dataTransfer.files; handleSelectPdf(); } });
+pdfFileInput.addEventListener('change', handleSelectPdf);
+
+function handleSelectPdf() {
+    const file = pdfFileInput.files[0];
+    if(file && cekUkuranFile(file)) {
+        fileNamePdf.textContent = file.name; fileInfoPdf.style.display = 'flex';
+        statusPdf.textContent = "Dokumen siap diproses!"; statusPdf.className = "status-box status-success";
+        resultAreaPdf.style.display = "none"; downloadZipBtn.style.display = "none"; generatedImages = [];
+    } else { pdfFileInput.value = ""; fileInfoPdf.style.display = 'none'; }
+}
+convertPdfBtn.addEventListener('click', async () => {
+    const file = pdfFileInput.files[0]; if(!file) return alert('Pilih berkas PDF terlebih dahulu!');
+    const dpi = parseInt(dpiInput.value) || 300;
+    convertPdfBtn.disabled = true; progressBarPdf.style.display = "block";
+    statusPdf.textContent = "Membaca dokumen..."; statusPdf.className = "status-box status-info";
+    generatedImages = []; downloadListPdf.innerHTML = "";
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const pdf = await pdfjsLib.getDocument({data: new Uint8Array(e.target.result)}).promise;
+            for(let i=1; i<=pdf.numPages; i++){
+                progressFillPdf.style.width = `${Math.round(((i-1)/pdf.numPages)*100)}%`;
+                statusPdf.textContent = `Mengekstrak Halaman ${i} dari ${pdf.numPages}...`;
+                const page = await pdf.getPage(i); const viewport = page.getViewport({scale: dpi/72});
+                const canvas = document.createElement('canvas'); canvas.width = viewport.width; canvas.height = viewport.height;
+                await page.render({canvasContext: canvas.getContext('2d'), viewport: viewport}).promise;
+                const imgUrl = canvas.toDataURL('image/jpeg', 0.92); generatedImages.push({name: `Halaman_${i}.jpg`, data: imgUrl});
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="${imgUrl}" download="Halaman_${i}.jpg" class="download-link"><span>📄 Halaman ${i} (${dpi} DPI)</span><span class="download-action">Unduh JPG</span></a>`;
+                downloadListPdf.appendChild(li);
+            }
+            statusPdf.textContent = `✅ Sukses mengekstrak ${pdf.numPages} halaman!`;
+            statusPdf.className = "status-box status-success"; resultAreaPdf.style.display = "block"; downloadZipBtn.style.display = "block";
+        } catch(err) { statusPdf.textContent = "Gagal memproses PDF."; statusPdf.className = "status-box status-error"; }
+        convertPdfBtn.disabled = false; progressBarPdf.style.display = "none";
+    }; reader.readAsArrayBuffer(file);
+});
+downloadZipBtn.addEventListener('click', async () => {
+    const zip = new JSZip(); generatedImages.forEach(img => { zip.file(img.name, b64toBlob(img.data.split(',')[1], 'image/jpeg')); });
+    const content = await zip.generateAsync({type:"blob"}); saveAs(content, `Ekstrak_PDF_Delta.zip`);
+});
+
+// JPG KE PDF
+const jpgFileInput = document.getElementById('jpgFile'); const dropAreaJpg = document.getElementById('dropAreaJpg');
+const fileInfoJpg = document.getElementById('fileInfoJpg'); const fileNameJpg = document.getElementById('fileNameJpg');
+const convertJpgBtn = document.getElementById('convertJpgBtn'); const statusJpg = document.getElementById('statusJpg');
+const resultAreaJpg = document.getElementById('resultAreaJpg'); const downloadListJpg = document.getElementById('downloadListJpg');
+let imageFiles = [];
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropAreaJpg.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }); });
+dropAreaJpg.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { jpgFileInput.files = e.dataTransfer.files; handleSelectJpg(); } });
+jpgFileInput.addEventListener('change', handleSelectJpg);
+function handleSelectJpg() {
+    imageFiles = Array.from(jpgFileInput.files);
+    if(imageFiles.length > 0 && imageFiles.every(file => cekUkuranFile(file))) {
+        fileNameJpg.textContent = `${imageFiles.length} Gambar Terpilih`; fileInfoJpg.style.display = 'flex';
+        statusJpg.textContent = "Gambar siap dikonversi!"; statusJpg.className = "status-box status-success"; resultAreaJpg.style.display = "none";
+    } else { jpgFileInput.value = ""; imageFiles = []; fileInfoJpg.style.display = 'none'; }
+}
+convertJpgBtn.addEventListener('click', async () => {
+    if(imageFiles.length === 0) return alert('Pilih gambar dahulu!');
+    convertJpgBtn.disabled = true; downloadListJpg.innerHTML = ""; statusJpg.textContent = "Menyusun PDF...";
+    const mode = document.querySelector('#modeJpgGroup .option-btn.active').dataset.value;
+    if(mode === 'merge') {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        for(let i=0; i<imageFiles.length; i++) {
+            if(i > 0) doc.addPage();
+            const rawUrl = await membacaBerkasDataURL(imageFiles[i]);
+            await new Promise((res) => {
+                const img = new Image(); img.onload = () => {
+                    const pW = doc.internal.pageSize.getWidth(); const pH = doc.internal.pageSize.getHeight();
+                    const rasio = Math.min(pW / img.width, pH / img.height);
+                    doc.addImage(img, 'JPEG', (pW - img.width*rasio)/2, (pH - img.height*rasio)/2, img.width*rasio, img.height*rasio); res();
+                }; img.src = rawUrl;
+            });
+        }
+        doc.save(`Gambar_Gabung_Delta.pdf`); statusJpg.textContent = "✅ Berhasil digabung & diunduh!"; statusJpg.className = "status-box status-success";
+    } else {
+        for(let i=0; i<imageFiles.length; i++) {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            const rawUrl = await membacaBerkasDataURL(imageFiles[i]);
+            await new Promise((res) => {
+                const img = new Image(); img.onload = () => { doc.addImage(img, 'JPEG', 10, 10, 190, 190*img.height/img.width); res(); }; img.src = rawUrl;
+            });
+            const linkUrl = URL.createObjectURL(doc.output('blob')); const li = document.createElement('li');
+            li.innerHTML = `<a href="${linkUrl}" download="Gambar_${i+1}.pdf" class="download-link"><span>📋 Dokumen PDF ${i+1}</span><span class="download-action">Unduh PDF</span></a>`;
+            downloadListJpg.appendChild(li);
+        }
+        statusJpg.textContent = "✅ Berhasil dibuat!"; statusJpg.className = "status-box status-success"; resultAreaJpg.style.display = "block";
+    } convertJpgBtn.disabled = false;
+});
+
+// PDF MERGER
+const mergeFilesInput = document.getElementById('mergeFiles'); const dropAreaMerge = document.getElementById('dropAreaMerge');
+const selectedMergeFilesList = document.getElementById('selectedMergeFilesList'); const mergePdfBtn = document.getElementById('mergePdfBtn');
+const statusMerge = document.getElementById('statusMerge'); const resultAreaMerge = document.getElementById('resultAreaMerge');
+const downloadListMerge = document.getElementById('downloadListMerge'); let filesToMerge = [];
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropAreaMerge.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }); });
+dropAreaMerge.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { mergeFilesInput.files = e.dataTransfer.files; handleSelectMerge(); } });
+mergeFilesInput.addEventListener('change', handleSelectMerge);
+function handleSelectMerge() {
+    filesToMerge = Array.from(mergeFilesInput.files); 
+    if(!filesToMerge.every(file => cekUkuranFile(file))) { mergeFilesInput.value = ""; filesToMerge = []; selectedMergeFilesList.style.display = "none"; return; }
+    selectedMergeFilesList.innerHTML = "";
+    if(filesToMerge.length >= 2) {
+        selectedMergeFilesList.style.display = "block";
+        filesToMerge.forEach((file, index) => {
+            const li = document.createElement('li'); li.innerHTML = `<span><span class="file-index">${index + 1}</span> ${file.name}</span>`; selectedMergeFilesList.appendChild(li);
+        });
+        statusMerge.textContent = `${filesToMerge.length} file PDF siap digabungkan.`; statusMerge.className = "status-box status-success"; resultAreaMerge.style.display = "none";
+    } else { selectedMergeFilesList.style.display = "none"; statusMerge.textContent = "Minimal 2 file PDF!"; statusMerge.className = "status-box status-error"; }
+}
+mergePdfBtn.addEventListener('click', async () => {
+    if(filesToMerge.length < 2) return alert('Pilih minimal 2 file PDF!');
+    mergePdfBtn.disabled = true; downloadListMerge.innerHTML = "";
+    try {
+        const mergedPdf = await PDFLib.PDFDocument.create();
+        for(let i = 0; i < filesToMerge.length; i++) {
+            statusMerge.textContent = `Menggabungkan (${i+1}/${filesToMerge.length})...`;
+            const fileBytes = await filesToMerge[i].arrayBuffer(); const pdfDoc = await PDFLib.PDFDocument.load(fileBytes);
+            const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices()); copiedPages.forEach((page) => mergedPdf.addPage(page));
+        }
+        const mergedPdfBytes = await mergedPdf.save(); const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+        const downloadUrl = URL.createObjectURL(blob); const li = document.createElement('li');
+        li.innerHTML = `<a href="${downloadUrl}" download="Delta_Merged_Document.pdf" class="download-link"><span>Merged_Document_${Date.now().toString().slice(-4)}.pdf</span><span class="download-action">Unduh PDF</span></a>`;
+        downloadListMerge.appendChild(li); statusMerge.textContent = "✅ Semua file PDF berhasil digabungkan!"; statusMerge.className = "status-box status-success"; resultAreaMerge.style.display = "block";
+    } catch(err) { statusMerge.textContent = "Terjadi kesalahan penggabungan."; statusMerge.className = "status-box status-error"; }
+    finally { mergePdfBtn.disabled = false; }
+});
+
+function b64toBlob(b64Data, contentType='') {
+    const byteCharacters = atob(b64Data); const byteArrays = [];
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+        const slice = byteCharacters.slice(offset, offset + 512); const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) byteNumbers[i] = slice.charCodeAt(i);
+        byteArrays.push(new Uint8Array(byteNumbers));
+    } return new Blob(byteArrays, {type: contentType});
+}
+function membacaBerkasDataURL(file) { return new Promise((resolve) => { const reader = new FileReader(); reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); }); }
+document.querySelectorAll('#modeJpgGroup .option-btn').forEach(b => { b.addEventListener('click', () => { document.querySelectorAll('#modeJpgGroup .option-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); }); });
+
+rekamEventInput();
+</script>
+</body>
+</html>
