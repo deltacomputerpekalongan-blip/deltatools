@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -120,10 +120,17 @@ footer { padding: 16px 24px; font-size: 12px; color: #666; margin-top: auto; bor
 .file-name-display { font-size: 13px; display: flex; align-items: center; gap: 8px; }
 .ready-badge { background: #10b981; color: white; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 6px; }
 
-/* Daftar Urutan File Terpilih (Khusus Merger) */
-.selected-files-list { list-style: none; margin-bottom: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); display: none; max-height: 150px; overflow-y: auto; }
+/* Daftar Urutan File Terpilih (Khusus Merger & Urutan Gambar) */
+.selected-files-list { list-style: none; margin-bottom: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); display: none; max-height: 200px; overflow-y: auto; }
 .selected-files-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.04); border-radius: 6px; margin-bottom: 4px; font-size: 12px; }
 .file-index { background: rgba(255,255,255,0.2); border-radius: 4px; padding: 1px 5px; font-weight: bold; margin-right: 6px; }
+
+/* Tombol Aksi List */
+.list-action-btns { display: flex; gap: 4px; }
+.list-action-btns button { padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; background: rgba(255,255,255,0.15); color: #fff; }
+.list-action-btns button:hover { background: rgba(255,255,255,0.3); }
+.list-action-btns button.btn-list-del { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.list-action-btns button.btn-list-del:hover { background: rgba(239, 68, 68, 0.4); }
 
 /* Opsi Baris Pengaturan Komponen Konverter */
 .control-group { margin-bottom: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); }
@@ -314,6 +321,9 @@ canvas { display: none; }
                         <div class="drop-text">Seret GAMBAR ke sini atau klik pilih berkas</div>
                     </div>
                     <div class="file-info" id="fileInfoJpg"><div class="file-name-display"><span id="fileNameJpg"></span></div></div>
+                    
+                    <ul class="selected-files-list" id="selectedJpgFilesList"></ul>
+
                     <div class="control-group">
                         <label>Metode Output PDF:</label>
                         <div class="option-buttons" id="modeJpgGroup">
@@ -830,20 +840,76 @@ const jpgFileInput = document.getElementById('jpgFile'); const dropAreaJpg = doc
 const fileInfoJpg = document.getElementById('fileInfoJpg'); const fileNameJpg = document.getElementById('fileNameJpg');
 const convertJpgBtn = document.getElementById('convertJpgBtn'); const statusJpg = document.getElementById('statusJpg');
 const resultAreaJpg = document.getElementById('resultAreaJpg'); const downloadListJpg = document.getElementById('downloadListJpg');
-let imageFiles = [];
+const selectedJpgFilesList = document.getElementById('selectedJpgFilesList');
+
+let imageFiles = []; // Menyimpan array objek file gambar asli
+
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropAreaJpg.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }); });
-dropAreaJpg.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { jpgFileInput.files = e.dataTransfer.files; handleSelectJpg(); } });
-jpgFileInput.addEventListener('change', handleSelectJpg);
-function handleSelectJpg() {
-    imageFiles = Array.from(jpgFileInput.files);
-    if(imageFiles.length > 0 && imageFiles.every(file => cekUkuranFile(file))) {
-        fileNameJpg.textContent = `${imageFiles.length} Gambar Terpilih`; fileInfoJpg.style.display = 'flex';
-        statusJpg.textContent = "Gambar siap dikonversi!"; statusJpg.className = "status-box status-success"; resultAreaJpg.style.display = "none";
-    } else { jpgFileInput.value = ""; imageFiles = []; fileInfoJpg.style.display = 'none'; }
+dropAreaJpg.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { tambahkanFileJpg(e.dataTransfer.files); } });
+jpgFileInput.addEventListener('change', () => { if(jpgFileInput.files.length) { tambahkanFileJpg(jpgFileInput.files); } });
+
+function tambahkanFileJpg(files) {
+    const filesArray = Array.from(files);
+    const filesValid = filesArray.filter(file => cekUkuranFile(file));
+    
+    if (filesValid.length > 0) {
+        imageFiles = imageFiles.concat(filesValid);
+        perbaruiTampilanListJpg();
+    }
+    jpgFileInput.value = ""; // Reset agar bisa upload file yang sama jika diinginkan
 }
+
+function perbaruiTampilanListJpg() {
+    if(imageFiles.length > 0) {
+        fileNameJpg.textContent = `${imageFiles.length} Gambar Terpilih`; 
+        fileInfoJpg.style.display = 'flex';
+        selectedJpgFilesList.style.display = "block";
+        statusJpg.textContent = "Gambar siap dikonversi! Anda bisa menggeser urutan halaman di bawah."; 
+        statusJpg.className = "status-box status-success";
+        resultAreaJpg.style.display = "none";
+        
+        selectedJpgFilesList.innerHTML = "";
+        imageFiles.forEach((file, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span><span class="file-index">${index + 1}</span> ${file.name}</span>
+                <div class="list-action-btns">
+                    <button onclick="geserJpg(${index}, -1)" title="Naikkan Urutan">▲</button>
+                    <button onclick="geserJpg(${index}, 1)" title="Turunkan Urutan">▼</button>
+                    <button class="btn-list-del" onclick="hapusJpg(${index})" title="Hapus Gambar">✕</button>
+                </div>
+            `;
+            selectedJpgFilesList.appendChild(li);
+        });
+    } else {
+        imageFiles = [];
+        fileInfoJpg.style.display = 'none';
+        selectedJpgFilesList.style.display = "none";
+        statusJpg.textContent = "Menunggu gambar...";
+        statusJpg.className = "status-box status-info";
+    }
+}
+
+window.geserJpg = function(index, arah) {
+    const targetIndex = index + arah;
+    if (targetIndex < 0 || targetIndex >= imageFiles.length) return; // Keluar batas array
+    
+    // Tukar posisi data array
+    const temp = imageFiles[index];
+    imageFiles[index] = imageFiles[targetIndex];
+    imageFiles[targetIndex] = temp;
+    
+    perbaruiTampilanListJpg();
+};
+
+window.hapusJpg = function(index) {
+    imageFiles.splice(index, 1);
+    perbaruiTampilanListJpg();
+};
+
 convertJpgBtn.addEventListener('click', async () => {
     if(imageFiles.length === 0) return alert('Pilih gambar dahulu!');
-    convertJpgBtn.disabled = true; downloadListJpg.innerHTML = ""; statusJpg.textContent = "Menyusun PDF...";
+    convertJpgBtn.disabled = true; downloadListJpg.innerHTML = ""; statusJpg.textContent = "Menyusun PDF sesuai urutan antrean...";
     const mode = document.querySelector('#modeJpgGroup .option-btn.active').dataset.value;
     if(mode === 'merge') {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
@@ -878,22 +944,70 @@ convertJpgBtn.addEventListener('click', async () => {
 const mergeFilesInput = document.getElementById('mergeFiles'); const dropAreaMerge = document.getElementById('dropAreaMerge');
 const selectedMergeFilesList = document.getElementById('selectedMergeFilesList'); const mergePdfBtn = document.getElementById('mergePdfBtn');
 const statusMerge = document.getElementById('statusMerge'); const resultAreaMerge = document.getElementById('resultAreaMerge');
-const downloadListMerge = document.getElementById('downloadListMerge'); let filesToMerge = [];
+const downloadListMerge = document.getElementById('downloadListMerge'); 
+
+let filesToMerge = [];
+
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropAreaMerge.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }); });
-dropAreaMerge.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { mergeFilesInput.files = e.dataTransfer.files; handleSelectMerge(); } });
-mergeFilesInput.addEventListener('change', handleSelectMerge);
-function handleSelectMerge() {
-    filesToMerge = Array.from(mergeFilesInput.files); 
-    if(!filesToMerge.every(file => cekUkuranFile(file))) { mergeFilesInput.value = ""; filesToMerge = []; selectedMergeFilesList.style.display = "none"; return; }
+dropAreaMerge.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { tambahkanFileMerge(e.dataTransfer.files); } });
+mergeFilesInput.addEventListener('change', () => { if(mergeFilesInput.files.length) { tambahkanFileMerge(mergeFilesInput.files); } });
+
+function tambahkanFileMerge(files) {
+    const filesArray = Array.from(files);
+    const filesValid = filesArray.filter(file => cekUkuranFile(file));
+    
+    if(filesValid.length > 0) {
+        filesToMerge = filesToMerge.concat(filesValid);
+        perbaruiTampilanListMerge();
+    }
+    mergeFilesInput.value = "";
+}
+
+function perbaruiTampilanListMerge() {
     selectedMergeFilesList.innerHTML = "";
-    if(filesToMerge.length >= 2) {
+    if(filesToMerge.length >= 1) {
         selectedMergeFilesList.style.display = "block";
         filesToMerge.forEach((file, index) => {
-            const li = document.createElement('li'); li.innerHTML = `<span><span class="file-index">${index + 1}</span> ${file.name}</span>`; selectedMergeFilesList.appendChild(li);
+            const li = document.createElement('li'); 
+            li.innerHTML = `
+                <span><span class="file-index">${index + 1}</span> ${file.name}</span>
+                <div class="list-action-btns">
+                    <button onclick="geserMerge(${index}, -1)" title="Naikkan Urutan">▲</button>
+                    <button onclick="geserMerge(${index}, 1)" title="Turunkan Urutan">▼</button>
+                    <button class="btn-list-del" onclick="hapusMerge(${index})" title="Hapus PDF">✕</button>
+                </div>
+            `; 
+            selectedMergeFilesList.appendChild(li);
         });
-        statusMerge.textContent = `${filesToMerge.length} file PDF siap digabungkan.`; statusMerge.className = "status-box status-success"; resultAreaMerge.style.display = "none";
-    } else { selectedMergeFilesList.style.display = "none"; statusMerge.textContent = "Minimal 2 file PDF!"; statusMerge.className = "status-box status-error"; }
+        if(filesToMerge.length >= 2) {
+            statusMerge.textContent = `${filesToMerge.length} file PDF siap digabungkan. Sesuaikan urutan jika diperlukan.`; 
+            statusMerge.className = "status-box status-success"; 
+        } else {
+            statusMerge.textContent = "Minimal pilih 2 file PDF untuk digabungkan!"; 
+            statusMerge.className = "status-box status-error"; 
+        }
+        resultAreaMerge.style.display = "none";
+    } else { 
+        selectedMergeFilesList.style.display = "none"; 
+        statusMerge.textContent = "Menunggu berkas..."; 
+        statusMerge.className = "status-box status-info"; 
+    }
 }
+
+window.geserMerge = function(index, arah) {
+    const targetIndex = index + arah;
+    if (targetIndex < 0 || targetIndex >= filesToMerge.length) return;
+    const temp = filesToMerge[index];
+    filesToMerge[index] = filesToMerge[targetIndex];
+    filesToMerge[targetIndex] = temp;
+    perbaruiTampilanListMerge();
+};
+
+window.hapusMerge = function(index) {
+    filesToMerge.splice(index, 1);
+    perbaruiTampilanListMerge();
+};
+
 mergePdfBtn.addEventListener('click', async () => {
     if(filesToMerge.length < 2) return alert('Pilih minimal 2 file PDF!');
     mergePdfBtn.disabled = true; downloadListMerge.innerHTML = "";
