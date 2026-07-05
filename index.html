@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -223,13 +223,13 @@ canvas { display: none; }
                     <div class="row-item">
                         <input type="number" class="qty" value="1" min="1" placeholder="Qty">
                         <input type="text" class="nama" placeholder="Nama Barang">
-                        <input type="number" class="harga" placeholder="Harga (Rp)" min="0">
+                        <input type="text" class="harga" placeholder="Harga (Rp)">
                     </div>
                 </div>
                 
                 <div class="summary">
                     <div><span><b>Total:</b></span> <span id="txt-total">Rp0</span></div>
-                    <div><span><b>Bayar:</b></span> <input type="number" id="input-bayar" value="0" min="0" style="width: 150px; text-align: right;"></div>
+                    <div><span><b>Bayar:</b></span> <input type="text" id="input-bayar" value="0" style="width: 150px; text-align: right;"></div>
                     <div><span><b id="lbl-kembalian">Kembalian:</b></span> <span id="txt-kembalian">Rp0</span></div>
                 </div>
                 <button id="btn-simpan">💾 Simpan Transaksi Ke Cloud</button>
@@ -322,6 +322,7 @@ canvas { display: none; }
                     </div>
                     <div class="file-info" id="fileInfoJpg"><div class="file-name-display"><span id="fileNameJpg"></span></div></div>
                     
+                    <!-- DAFTAR URUTAN GAMBAR -->
                     <ul class="selected-files-list" id="selectedJpgFilesList"></ul>
 
                     <div class="control-group">
@@ -376,10 +377,8 @@ canvas { display: none; }
 <script>
 /* ========================================================
    SISTEM OTENTIKASI PASSWORD (LOKAL)
-   Password default bawaan: "delta2026"
-   String terenkripsi di bawah adalah hasil Base64 dari password tersebut.
    ======================================================== */
-const encryptedKey = "ZGVsdGEyMDI2"; // Mengenkripsi "delta2026"
+const encryptedKey = "ZGVsdGEyMDI2"; 
 
 const authWall = document.getElementById('auth-wall');
 const mainAppContainer = document.getElementById('main-app-container');
@@ -389,11 +388,9 @@ const loginErr = document.getElementById('login-err');
 
 function verifyAccess() {
     const userInput = inputPasskey.value;
-    // Mengurai Base64 untuk mencocokkan teks asli
     if (userInput === atob(encryptedKey)) {
         authWall.style.display = 'none';
         mainAppContainer.style.display = 'flex';
-        // Jalankan inisialisasi Firebase jika login berhasil
         initFirebase();
     } else {
         loginErr.style.display = 'block';
@@ -406,7 +403,7 @@ btnLogin.addEventListener('click', verifyAccess);
 inputPasskey.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyAccess(); });
 
 
-/* INSIALISASI INTEGRASI FIREBASE DATA AKUN ANDA */
+/* INSIALISASI INTEGRASI FIREBASE */
 let db, riwayatRef, notesListRef, todoListRef;
 
 function initFirebase() {
@@ -426,7 +423,6 @@ function initFirebase() {
     notesListRef = db.ref('catatan_toko_list');
     todoListRef = db.ref('todo_toko_list');
 
-    // Menghubungkan listener realtime database setelah login sukses
     attachFirebaseListeners();
 }
 
@@ -473,10 +469,17 @@ function dapatkanTanggalHariIni() {
 }
 function formatRupiah(angka) { return 'Rp' + parseInt(angka).toLocaleString('id-ID'); }
 
+// Fungsi pembagi perseribu otomatis untuk format teks angka
+function formatInputRibuan(nilai) {
+    let angkaMurni = nilai.replace(/[^0-9]/g, '');
+    if (angkaMurni === '') return '0';
+    return parseInt(angkaMurni, 10).toLocaleString('id-ID');
+}
+
 btnTambahBaris.addEventListener('click', () => {
     const row = document.createElement('div');
     row.className = 'row-item'; row.style.marginTop = '8px';
-    row.innerHTML = `<input type="number" class="qty" value="1" min="1" placeholder="Qty"><input type="text" class="nama" placeholder="Nama Barang"><input type="number" class="harga" placeholder="Harga (Rp)">`;
+    row.innerHTML = `<input type="number" class="qty" value="1" min="1" placeholder="Qty"><input type="text" class="nama" placeholder="Nama Barang"><input type="text" class="harga" placeholder="Harga (Rp)">`;
     daftarBarangContainer.appendChild(row);
     rekamEventInput();
 });
@@ -485,14 +488,18 @@ function hitungTotal() {
     totalBelanja = 0;
     daftarBarangContainer.querySelectorAll('.row-item').forEach(row => {
         const qty = parseFloat(row.querySelector('.qty').value) || 0;
-        const harga = parseFloat(row.querySelector('.harga').value) || 0;
+        // Ambil nilai murni dengan membersihkan tanda titik format
+        const hargaRaw = row.querySelector('.harga').value.replace(/\./g, '') || '0';
+        const harga = parseFloat(hargaRaw) || 0;
         totalBelanja += qty * harga;
     });
     txtTotal.innerText = formatRupiah(totalBelanja);
     hitungKembalian();
 }
+
 function hitungKembalian() {
-    const bayar = parseFloat(inputBayar.value) || 0;
+    const nilaiInput = inputBayar.value.replace(/\./g, '') || '0';
+    const bayar = parseFloat(nilaiInput) || 0;
     const selisih = bayar - totalBelanja;
 
     if (selisih < 0) {
@@ -507,12 +514,29 @@ function hitungKembalian() {
         txtKembalian.style.fontWeight = '';
     }
 }
+
 function rekamEventInput() {
-    daftarBarangContainer.querySelectorAll('input').forEach(input => {
+    daftarBarangContainer.querySelectorAll('.qty').forEach(input => {
         input.removeEventListener('input', hitungTotal); input.addEventListener('input', hitungTotal);
     });
+    
+    // Pasang format ribuan otomatis real-time ke semua inputan harga barang
+    daftarBarangContainer.querySelectorAll('.harga').forEach(input => {
+        input.removeEventListener('input', formatDanHitungHarga);
+        input.addEventListener('input', formatDanHitungHarga);
+    });
 }
-inputBayar.addEventListener('input', hitungKembalian);
+
+function formatDanHitungHarga() {
+    this.value = formatInputRibuan(this.value);
+    hitungTotal();
+}
+
+// Event listener input pembayaran
+inputBayar.addEventListener('input', function() {
+    this.value = formatInputRibuan(this.value);
+    hitungKembalian();
+});
 
 function attachFirebaseListeners() {
     riwayatRef.on('value', (snapshot) => {
@@ -579,14 +603,15 @@ function attachFirebaseListeners() {
 
 btnSimpan.addEventListener('click', () => {
     if (totalBelanja <= 0) return alert('Total belanja masih Rp0.');
-    const bayar = parseFloat(inputBayar.value) || 0;
+    const bayar = parseFloat(inputBayar.value.replace(/\./g, '')) || 0;
     const statusTransaksi = bayar < totalBelanja ? 'KURANG' : 'LUNAS';
 
     const items = [];
     daftarBarangContainer.querySelectorAll('.row-item').forEach(row => {
         const qty = parseFloat(row.querySelector('.qty').value) || 0;
         const nama = row.querySelector('.nama').value || 'Barang Umum';
-        const harga = parseFloat(row.querySelector('.harga').value) || 0;
+        const hargaRaw = row.querySelector('.harga').value.replace(/\./g, '') || '0';
+        const harga = parseFloat(hargaRaw) || 0;
         if(qty > 0 && harga > 0) items.push({ nama, qty, harga, totalItem: qty * harga });
     });
 
@@ -602,8 +627,9 @@ btnSimpan.addEventListener('click', () => {
     };
 
     riwayatRef.push(transaksiBaru).then(() => {
-        daftarBarangContainer.innerHTML = `<div class="row-item"><input type="number" class="qty" value="1" min="1" placeholder="Qty"><input type="text" class="nama" placeholder="Nama Barang"><input type="number" class="harga" placeholder="Harga (Rp)"></div>`;
-        inputBayar.value = 0; hitungTotal(); rekamEventInput();
+        daftarBarangContainer.innerHTML = `<div class="row-item"><input type="number" class="qty" value="1" min="1" placeholder="Qty"><input type="text" class="nama" placeholder="Nama Barang"><input type="text" class="harga" placeholder="Harga (Rp)"></div>`;
+        inputBayar.value = '0'; 
+        hitungTotal(); rekamEventInput();
     }).catch(err => alert("Gagal menyimpan: " + err));
 });
 
@@ -639,7 +665,6 @@ function tampilkanRiwayat(filter = '') {
     });
 }
 
-// FUNGSI PRATINJAU NOTA (MODAL POPUP)
 window.pratinjauNota = function(id) {
     const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
     const userDisplay = tx.user ? tx.user : 'Umum';
@@ -668,7 +693,6 @@ window.pratinjauNota = function(id) {
     document.getElementById('modalPreview').style.display = 'flex';
 }
 
-// SISTEM PENUTUP MODAL MODAL
 document.getElementById('closeModal').addEventListener('click', () => { document.getElementById('modalPreview').style.display = 'none'; });
 window.addEventListener('click', (e) => { const modal = document.getElementById('modalPreview'); if (e.target === modal) modal.style.display = 'none'; });
 
@@ -730,7 +754,6 @@ function dapatkanWaktuLengkap() {
     return `${tglStr} - ${jamStr}`;
 }
 
-// 1. MANAJEMEN KOLOM CATATAN (NOTES LIST)
 btnTambahCatatan.addEventListener('click', () => {
     const teks = inputCatatanTeks.value.trim();
     if(!teks) return;
@@ -743,8 +766,6 @@ btnTambahCatatan.addEventListener('click', () => {
 
 window.hapusCatatanItem = function(key) { notesListRef.child(key).remove(); };
 
-
-// 2. MANAJEMEN KOLOM DAFTAR TUGAS (TO-DO LIST)
 btnTambahTodo.addEventListener('click', () => {
     const teks = inputTodoTeks.value.trim();
     if(!teks) return;
@@ -842,7 +863,7 @@ const convertJpgBtn = document.getElementById('convertJpgBtn'); const statusJpg 
 const resultAreaJpg = document.getElementById('resultAreaJpg'); const downloadListJpg = document.getElementById('downloadListJpg');
 const selectedJpgFilesList = document.getElementById('selectedJpgFilesList');
 
-let imageFiles = []; // Menyimpan array objek file gambar asli
+let imageFiles = []; 
 
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropAreaJpg.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }); });
 dropAreaJpg.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { tambahkanFileJpg(e.dataTransfer.files); } });
@@ -856,7 +877,7 @@ function tambahkanFileJpg(files) {
         imageFiles = imageFiles.concat(filesValid);
         perbaruiTampilanListJpg();
     }
-    jpgFileInput.value = ""; // Reset agar bisa upload file yang sama jika diinginkan
+    jpgFileInput.value = ""; 
 }
 
 function perbaruiTampilanListJpg() {
@@ -892,9 +913,8 @@ function perbaruiTampilanListJpg() {
 
 window.geserJpg = function(index, arah) {
     const targetIndex = index + arah;
-    if (targetIndex < 0 || targetIndex >= imageFiles.length) return; // Keluar batas array
+    if (targetIndex < 0 || targetIndex >= imageFiles.length) return; 
     
-    // Tukar posisi data array
     const temp = imageFiles[index];
     imageFiles[index] = imageFiles[targetIndex];
     imageFiles[targetIndex] = temp;
