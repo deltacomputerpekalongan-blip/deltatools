@@ -53,7 +53,11 @@ header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #ddd; fo
 /* Layout Grid Kasir */
 #panel-kasir { grid-template-columns: 2fr 1fr; gap: 20px; }
 .card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,.08); display: flex; flex-direction: column; gap: 12px; height: max-content; }
-.row-item { display: grid; grid-template-columns: 60px 2fr 1fr; gap: 10px; align-items: center; }
+
+/* Row item disesuaikan agar muat kolom subtotal di kanan */
+.row-item { display: grid; grid-template-columns: 60px 2fr 1.2fr 1fr; gap: 10px; align-items: center; }
+.txt-subtotal-item { font-size: 14px; font-weight: 600; color: #334155; text-align: right; padding-right: 5px; white-space: nowrap; }
+
 input, select, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
 .summary { border-top: 1px dashed #ddd; padding-top: 12px; margin-top: 8px; }
 .summary div { margin: 8px 0; font-size: 18px; display: flex; justify-content: space-between; }
@@ -224,6 +228,7 @@ canvas { display: none; }
                         <input type="number" class="qty" value="1" min="1" placeholder="Qty">
                         <input type="text" class="nama" placeholder="Nama Barang">
                         <input type="text" class="harga" placeholder="Harga (Rp)">
+                        <div class="txt-subtotal-item">Rp0</div>
                     </div>
                 </div>
                 
@@ -357,7 +362,7 @@ canvas { display: none; }
 <div id="invoice-template">
     <div class="inv-header">DELTA COMPUTER - PRINTING<br><span style="font-size: 11px; font-weight: normal;">Nota Pembelian Resmi</span></div>
     <div class="inv-meta">ID: <span id="inv-id"></span><br>Kasir: <span id="inv-user" style="font-weight: bold;"></span><br>Tgl: <span id="inv-tgl"></span></div>
-    <table class="inv-table" id="inv-items"><thead><tr><th>Item</th><th>Qty</th><th style="text-align: right;">Total</th></tr></thead><tbody></tbody></table>
+    <table class="inv-table" id="inv-items"><thead><tr><th>Item</th><th>Detail</th><th style="text-align: right;">Total</th></tr></thead><tbody></tbody></table>
     <div class="inv-summary">
         <div>Total: <span id="inv-total"></span></div>
         <div>Bayar: <span id="inv-bayar"></span></div>
@@ -479,7 +484,12 @@ function formatInputRibuan(nilai) {
 btnTambahBaris.addEventListener('click', () => {
     const row = document.createElement('div');
     row.className = 'row-item'; row.style.marginTop = '8px';
-    row.innerHTML = `<input type="number" class="qty" value="1" min="1" placeholder="Qty"><input type="text" class="nama" placeholder="Nama Barang"><input type="text" class="harga" placeholder="Harga (Rp)">`;
+    row.innerHTML = `
+        <input type="number" class="qty" value="1" min="1" placeholder="Qty">
+        <input type="text" class="nama" placeholder="Nama Barang">
+        <input type="text" class="harga" placeholder="Harga (Rp)">
+        <div class="txt-subtotal-item">Rp0</div>
+    `;
     daftarBarangContainer.appendChild(row);
     rekamEventInput();
 });
@@ -491,7 +501,12 @@ function hitungTotal() {
         // Ambil nilai murni dengan membersihkan tanda titik format
         const hargaRaw = row.querySelector('.harga').value.replace(/\./g, '') || '0';
         const harga = parseFloat(hargaRaw) || 0;
-        totalBelanja += qty * harga;
+        const subtotalBaris = qty * harga;
+        
+        // Update tampilan subtotal per baris secara real-time
+        row.querySelector('.txt-subtotal-item').innerText = formatRupiah(subtotalBaris);
+        
+        totalBelanja += subtotalBaris;
     });
     txtTotal.innerText = formatRupiah(totalBelanja);
     hitungKembalian();
@@ -627,7 +642,14 @@ btnSimpan.addEventListener('click', () => {
     };
 
     riwayatRef.push(transaksiBaru).then(() => {
-        daftarBarangContainer.innerHTML = `<div class="row-item"><input type="number" class="qty" value="1" min="1" placeholder="Qty"><input type="text" class="nama" placeholder="Nama Barang"><input type="text" class="harga" placeholder="Harga (Rp)"></div>`;
+        daftarBarangContainer.innerHTML = `
+            <div class="row-item">
+                <input type="number" class="qty" value="1" min="1" placeholder="Qty">
+                <input type="text" class="nama" placeholder="Nama Barang">
+                <input type="text" class="harga" placeholder="Harga (Rp)">
+                <div class="txt-subtotal-item">Rp0</div>
+            </div>
+        `;
         inputBayar.value = '0'; 
         hitungTotal(); rekamEventInput();
     }).catch(err => alert("Gagal menyimpan: " + err));
@@ -670,15 +692,19 @@ window.pratinjauNota = function(id) {
     const userDisplay = tx.user ? tx.user : 'Umum';
     let itemRows = '';
     tx.items.forEach(item => {
-        itemRows += `<tr><td>${item.nama}</td><td>x${item.qty}</td><td style="text-align: right;">${formatRupiah(item.totalItem)}</td></tr>`;
+        itemRows += `<tr>
+            <td style="padding: 4px 0;">${item.nama}</td>
+            <td style="padding: 4px 0; color: #555;">${item.qty} x ${parseFloat(item.harga || 0).toLocaleString('id-ID')}</td>
+            <td style="text-align: right; padding: 4px 0;">${formatRupiah(item.totalItem)}</td>
+        </tr>`;
     });
 
     const htmlContent = `
         <div style="font-family: 'Courier New', Courier, monospace; color: #000; font-size: 13px;">
             <div style="text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px;">DELTA COMPUTER - PRINTING<br><span style="font-size: 11px; font-weight: normal;">Nota Pembelian Resmi</span></div>
             <div style="margin-bottom: 10px; font-size: 11px;">ID: ${tx.id}<br>Kasir: <b>${userDisplay}</b><br>Tgl: ${tx.tanggal}</div>
-            <table style="width: 100%; font-size: 11px; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px;">
-                <thead><tr><th style="text-align: left;">Item</th><th style="text-align: left;">Qty</th><th style="text-align: right;">Total</th></tr></thead>
+            <table style="width: 100%; font-size: 11px; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; border-collapse: collapse;">
+                <thead><tr><th style="text-align: left; border-bottom: 1px dashed #000; padding-bottom: 4px;">Item</th><th style="text-align: left; border-bottom: 1px dashed #000; padding-bottom: 4px;">Detail</th><th style="text-align: right; border-bottom: 1px dashed #000; padding-bottom: 4px;">Total</th></tr></thead>
                 <tbody>${itemRows}</tbody>
             </table>
             <div style="text-align: right; font-size: 12px; display: flex; flex-direction: column; gap: 2px;">
@@ -699,10 +725,17 @@ window.addEventListener('click', (e) => { const modal = document.getElementById(
 window.eksportTXT = function(id) {
     const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
     const n = "\r\n"; const userDisplay = tx.user ? tx.user : 'Umum';
-    let txtContent = `========================================` + n + `       DELTA COMPUTER - PRINTING        ` + n + `========================================` + n;
-    txtContent += `ID Transaksi : ${tx.id}` + n + `Kasir        : ${userDisplay}` + n + `Tanggal      : ${tx.tanggal}` + n + `Status       : ${tx.status}` + n + `----------------------------------------` + n;
-    tx.items.forEach(item => { txtContent += `${item.nama.padEnd(17)} ${item.qty.toString().padEnd(5)} ${item.harga.toLocaleString('id-ID').padEnd(9)} ${item.totalItem.toLocaleString('id-ID')}` + n; });
-    txtContent += `----------------------------------------` + n + `TOTAL BLANJA : Rp${tx.total.toLocaleString('id-ID')}` + n;
+    let txtContent = `==================================================` + n + `            DELTA COMPUTER - PRINTING             ` + n + `==================================================` + n;
+    txtContent += `ID Transaksi : ${tx.id}` + n + `Kasir        : ${userDisplay}` + n + `Tanggal      : ${tx.tanggal}` + n + `Status       : ${tx.status}` + n + `--------------------------------------------------` + n;
+    txtContent += `Nama Barang       Qty x Harga Satuan     Subtotal ` + n + `--------------------------------------------------` + n;
+    tx.items.forEach(item => { 
+        let detailStr = `${item.qty} x ${parseFloat(item.harga || 0).toLocaleString('id-ID')}`;
+        txtContent += `${item.nama.padEnd(17)} ${detailStr.padEnd(22)} Rp${item.totalItem.toLocaleString('id-ID')}` + n; 
+    });
+    txtContent += `--------------------------------------------------` + n + `TOTAL BELANJA : Rp${tx.total.toLocaleString('id-ID')}` + n;
+    txtContent += `BAYAR         : Rp${parseFloat(tx.bayar || tx.total).toLocaleString('id-ID')}` + n;
+    txtContent += `KEMBALIAN     : Rp${parseFloat(tx.kembalian || 0).toLocaleString('id-ID')}` + n + n;
+    txtContent += `    Terima Kasih Atas Kunjungan Anda!   ` + n;
     const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Nota_Delta_${tx.id}.txt`; link.click();
 }
@@ -717,7 +750,9 @@ window.eksportPNG = function(id) {
     document.getElementById('inv-kembali').innerText = formatRupiah(tx.kembalian || 0);
     const tbody = document.querySelector('#inv-items tbody'); tbody.innerHTML = '';
     tx.items.forEach(item => {
-        const tr = document.createElement('tr'); tr.innerHTML = `<td>${item.nama}</td><td>x${item.qty}</td><td style="text-align: right;">${formatRupiah(item.totalItem)}</td>`; tbody.appendChild(tr);
+        const tr = document.createElement('tr'); 
+        tr.innerHTML = `<td>${item.nama}</td><td>${item.qty} x ${parseFloat(item.harga || 0).toLocaleString('id-ID')}</td><td style="text-align: right;">${formatRupiah(item.totalItem)}</td>`; 
+        tbody.appendChild(tr);
     });
     const targetElement = document.getElementById('invoice-template'); targetElement.style.position = 'static';
     html2canvas(targetElement, { scale: 2 }).then(canvas => {
