@@ -366,7 +366,7 @@ canvas { display: none; }
     <div class="inv-summary">
         <div>Total: <span id="inv-total"></span></div>
         <div>Bayar: <span id="inv-bayar"></span></div>
-        <div style="font-weight: bold;">Kembali: <span id="inv-kembali"></span></div>
+        <div style="font-weight: bold;" id="inv-lbl-kembali-box"><span id="inv-lbl-kembali">Kembali:</span> <span id="inv-kembali"></span></div>
     </div>
     <div class="inv-footer">Terima Kasih Atas Kunjungan Anda<br>Delta Computer & Printing</div>
 </div>
@@ -699,6 +699,17 @@ window.pratinjauNota = function(id) {
         </tr>`;
     });
 
+    const selisih = (tx.bayar || 0) - tx.total;
+    let labelKembali = 'Kembali:';
+    let nilaiKembali = tx.kembalian || 0;
+    let styleWarna = '';
+
+    if (selisih < 0) {
+        labelKembali = 'Kekurangan:';
+        nilaiKembali = Math.abs(selisih);
+        styleWarna = 'color: #ef4444;';
+    }
+
     const htmlContent = `
         <div style="font-family: 'Courier New', Courier, monospace; color: #000; font-size: 13px;">
             <div style="text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px;">DELTA COMPUTER - PRINTING<br><span style="font-size: 11px; font-weight: normal;">Nota Pembelian Resmi</span></div>
@@ -709,8 +720,8 @@ window.pratinjauNota = function(id) {
             </table>
             <div style="text-align: right; font-size: 12px; display: flex; flex-direction: column; gap: 2px;">
                 <div>Total: ${formatRupiah(tx.total)}</div>
-                <div>Bayar: ${formatRupiah(tx.bayar || tx.total)}</div>
-                <div style="font-weight: bold;">Kembali: ${formatRupiah(tx.kembalian || 0)}</div>
+                <div>Bayar: ${formatRupiah(tx.bayar || 0)}</div>
+                <div style="font-weight: bold; ${styleWarna}">${labelKembali} ${formatRupiah(nilaiKembali)}</div>
             </div>
             <div style="text-align: center; font-size: 10px; margin-top: 15px; border-top: 1px dashed #000; padding-top: 5px;">Terima Kasih Atas Kunjungan Anda<br>Delta Computer & Printing</div>
         </div>
@@ -725,6 +736,15 @@ window.addEventListener('click', (e) => { const modal = document.getElementById(
 window.eksportTXT = function(id) {
     const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
     const n = "\r\n"; const userDisplay = tx.user ? tx.user : 'Umum';
+    
+    const selisih = (tx.bayar || 0) - tx.total;
+    let labelKembali = 'KEMBALIAN     ';
+    let nilaiKembali = tx.kembalian || 0;
+    if (selisih < 0) {
+        labelKembali = 'KEKURANGAN    ';
+        nilaiKembali = Math.abs(selisih);
+    }
+
     let txtContent = `==================================================` + n + `            DELTA COMPUTER - PRINTING             ` + n + `==================================================` + n;
     txtContent += `ID Transaksi : ${tx.id}` + n + `Kasir        : ${userDisplay}` + n + `Tanggal      : ${tx.tanggal}` + n + `Status       : ${tx.status}` + n + `--------------------------------------------------` + n;
     txtContent += `Nama Barang       Qty x Harga Satuan     Subtotal ` + n + `--------------------------------------------------` + n;
@@ -733,8 +753,8 @@ window.eksportTXT = function(id) {
         txtContent += `${item.nama.padEnd(17)} ${detailStr.padEnd(22)} Rp${item.totalItem.toLocaleString('id-ID')}` + n; 
     });
     txtContent += `--------------------------------------------------` + n + `TOTAL BELANJA : Rp${tx.total.toLocaleString('id-ID')}` + n;
-    txtContent += `BAYAR         : Rp${parseFloat(tx.bayar || tx.total).toLocaleString('id-ID')}` + n;
-    txtContent += `KEMBALIAN     : Rp${parseFloat(tx.kembalian || 0).toLocaleString('id-ID')}` + n + n;
+    txtContent += `BAYAR         : Rp${parseFloat(tx.bayar || 0).toLocaleString('id-ID')}` + n;
+    txtContent += `${labelKembali} : Rp${nilaiKembali.toLocaleString('id-ID')}` + n + n;
     txtContent += `    Terima Kasih Atas Kunjungan Anda!   ` + n;
     const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Nota_Delta_${tx.id}.txt`; link.click();
@@ -746,8 +766,23 @@ window.eksportPNG = function(id) {
     document.getElementById('inv-user').innerText = tx.user ? tx.user : 'Umum';
     document.getElementById('inv-tgl').innerText = tx.tanggal;
     document.getElementById('inv-total').innerText = formatRupiah(tx.total);
-    document.getElementById('inv-bayar').innerText = formatRupiah(tx.bayar || tx.total);
-    document.getElementById('inv-kembali').innerText = formatRupiah(tx.kembalian || 0);
+    document.getElementById('inv-bayar').innerText = formatRupiah(tx.bayar || 0);
+    
+    const selisih = (tx.bayar || 0) - tx.total;
+    const lblElement = document.getElementById('inv-lbl-kembali');
+    const txtElement = document.getElementById('inv-kembali');
+    const boxElement = document.getElementById('inv-lbl-kembali-box');
+
+    if (selisih < 0) {
+        lblElement.innerText = 'Kekurangan:';
+        txtElement.innerText = formatRupiah(Math.abs(selisih));
+        boxElement.style.color = '#ef4444';
+    } else {
+        lblElement.innerText = 'Kembali:';
+        txtElement.innerText = formatRupiah(selisih);
+        boxElement.style.color = '';
+    }
+
     const tbody = document.querySelector('#inv-items tbody'); tbody.innerHTML = '';
     tx.items.forEach(item => {
         const tr = document.createElement('tr'); 
