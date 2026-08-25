@@ -2,1321 +2,1132 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#f8f9ff" id="themeColorMeta">
-<title>Work Notes - One UI Cloud</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delta Workspace V4 - Kasir Online Cloud</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <style>
-/* =========================================================
-   MATERIAL DESIGN 3 (MD3) SYSTEM COLOR TOKENS
-   ========================================================= */
-:root {
-  --md-sys-color-background: #f8f9ff;
-  --md-sys-color-on-background: #191c20;
-  --md-sys-color-surface: #f2f3f9;
-  --md-sys-color-surface-container: #ffffff;
-  --md-sys-color-on-surface: #191c20;
-  --md-sys-color-on-surface-variant: #44474e;
-  --md-sys-color-primary: #2b5ea7;
-  --md-sys-color-on-primary: #ffffff;
-  --md-sys-color-primary-container: #d6e3ff;
-  --md-sys-color-on-primary-container: #001b3e;
-  --md-sys-color-outline: #74777f;
-  --md-sys-color-outline-variant: #c4c6d0;
-  --md-sys-color-error: #ba1a1a;
-  --md-sys-color-error-container: #ffdad6;
-  --md-sys-color-success: #198754;
-  --md-sys-color-success-container: #e6f7ed;
-  --md-sys-color-warning: #d98200;
-  --md-sys-color-warning-container: #fff3df;
-  
-  --md-shape-corner-small: 8px;
-  --md-shape-corner-medium: 16px;
-  --md-shape-corner-large: 28px;
-  --md-shape-corner-full: 9999px;
+* { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+body { background: #f4f7fb; color: #222; min-height: 100vh; }
 
-  --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
-  --md-elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.15), 0px 2px 4px rgba(0, 0, 0, 0.12);
-  --md-elevation-3: 0px 10px 20px rgba(0, 0, 0, 0.15), 0px 3px 6px rgba(0, 0, 0, 0.10);
+/* Kunci Layar Utama Sebelum Login */
+#auth-wall {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: #0f172a; display: flex; align-items: center; justify-content: center; 
+    z-index: 99999; padding: 20px;
 }
-
-.dark {
-  --md-sys-color-background: #111318;
-  --md-sys-color-on-background: #e2e2e9;
-  --md-sys-color-surface: #191c20;
-  --md-sys-color-surface-container: #23262b;
-  --md-sys-color-on-surface: #e2e2e9;
-  --md-sys-color-on-surface-variant: #c4c6d0;
-  --md-sys-color-primary: #a8c8ff;
-  --md-sys-color-on-primary: #003062;
-  --md-sys-color-primary-container: #004689;
-  --md-sys-color-on-primary-container: #d6e3ff;
-  --md-sys-color-outline: #8e9099;
-  --md-sys-color-outline-variant: #44474e;
-  --md-sys-color-error: #ffb4ab;
-  --md-sys-color-error-container: #93000a;
-  --md-sys-color-success: #53c98a;
-  --md-sys-color-success-container: #103822;
-  --md-sys-color-warning: #ffb74d;
-  --md-sys-color-warning-container: #422800;
-
-  --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.4), 0px 1px 2px rgba(0, 0, 0, 0.3);
-  --md-elevation-2: 0px 4px 8px rgba(0, 0, 0, 0.5);
-  --md-elevation-3: 0px 12px 24px rgba(0, 0, 0, 0.6);
+.auth-card {
+    background: #fff; padding: 30px; border-radius: 16px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 380px; text-align: center;
 }
+.auth-card h2 { font-size: 20px; color: #1e293b; margin-bottom: 8px; }
+.auth-card p { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+.auth-card input { width: 100%; padding: 12px; margin-bottom: 15px; text-align: center; font-size: 16px; letter-spacing: 4px; }
+.auth-card button { width: 100%; padding: 12px; background: #2563eb; font-size: 15px; }
 
-/* =========================================================
-   BASE STYLES & LAYOUT (EDGE-TO-EDGE INSETS)
-   ========================================================= */
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body {
-  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--md-sys-color-background);
-  color: var(--md-sys-color-on-background);
-  padding-top: max(16px, env(safe-area-inset-top));
-  padding-bottom: calc(96px + env(safe-area-inset-bottom));
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-  transition: background-color 0.3s, color 0.3s;
-}
+/* Sembunyikan app bawaan saat belum login */
+.app { display: none; height: 100vh; overflow: hidden; }
 
-button, input, textarea, select { font-family: inherit; border: none; outline: none; }
+/* Sidebar Navigasi */
+.sidebar { width: 64px; background: #1e293b; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 16px; flex-shrink: 0; }
+.icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: 0.2s; color: rgba(255,255,255,0.7); }
+.icon:hover, .icon.active { background: #2563eb; color: #fff; }
 
-/* SVG Icon Helper */
-.icon-svg {
-  width: 22px;
-  height: 22px;
-  fill: currentColor;
-  display: inline-block;
-  vertical-align: middle;
-}
+/* Struktur Area Utama */
+.main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; }
+header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #ddd; font-size: 22px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.app-mode-title { font-size: 14px; background: #e2e8f0; color: #334155; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
 
-/* Top App Bar */
-.header {
-  max-width: 900px;
-  margin: auto;
-  padding: 16px 20px 8px;
-}
-.header-top { display: flex; justify-content: space-between; align-items: center; }
-.greeting { color: var(--md-sys-color-on-surface-variant); font-size: 13px; font-weight: 500; margin-bottom: 2px; }
-.header h1 { font-size: 28px; font-weight: 700; color: var(--md-sys-color-on-background); }
-.theme-btn {
-  width: 44px; height: 44px; border-radius: var(--md-shape-corner-full);
-  background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface);
-  box-shadow: var(--md-elevation-1); cursor: pointer; font-size: 18px;
-  display: flex; align-items: center; justify-content: center; transition: 0.2s;
-}
-.theme-btn:active { transform: scale(0.95); }
+/* Konten Tab Aktif / Sembunyi */
+.tab-panel { display: none; padding: 24px; }
+.tab-panel.active { display: grid; }
 
-.container { max-width: 900px; margin: auto; padding: 0 20px; }
-.page { display: none; }
-.page.active { display: block; animation: fadeIn 0.25s ease-out; }
+/* Layout Grid Kasir */
+#panel-kasir { grid-template-columns: 2fr 1fr; gap: 20px; }
+.card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,.08); display: flex; flex-direction: column; gap: 12px; height: max-content; }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* Row item disesuaikan agar muat kolom subtotal di kanan */
+.row-item { display: grid; grid-template-columns: 60px 2fr 1.2fr 1fr; gap: 10px; align-items: center; }
+.txt-subtotal-item { font-size: 14px; font-weight: 600; color: #334155; text-align: right; padding-right: 5px; white-space: nowrap; }
 
-/* Material Search Bar */
-.search {
-  display: flex; align-items: center; gap: 12px;
-  background: var(--md-sys-color-surface-container);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-shape-corner-full);
-  padding: 12px 20px; margin-bottom: 16px;
-  box-shadow: var(--md-elevation-1);
-}
-.search span { font-size: 18px; color: var(--md-sys-color-on-surface-variant); }
-.search input { width: 100%; background: transparent; color: var(--md-sys-color-on-surface); font-size: 15px; }
+input, select, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+.summary { border-top: 1px dashed #ddd; padding-top: 12px; margin-top: 8px; }
+.summary div { margin: 8px 0; font-size: 18px; display: flex; justify-content: space-between; }
 
-/* Material Cards */
-.card {
-  background: var(--md-sys-color-surface-container);
-  border-radius: var(--md-shape-corner-large);
-  padding: 20px; box-shadow: var(--md-elevation-1);
-  margin-bottom: 16px;
-}
-.section-title { font-size: 18px; font-weight: 700; margin: 24px 0 12px; color: var(--md-sys-color-on-background); }
+/* Desain Komponen Tombol global */
+button { padding: 12px 18px; border: none; border-radius: 10px; background: #2563eb; color: #fff; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; text-align: center; }
+button:hover { background: #1d4ed8; }
+.btn-secondary { background: #e2e8f0; color: #334155; margin-bottom: 10px; }
+.btn-secondary:hover { background: #cbd5e1; }
+.history .item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 10px; background: #f8fafc; }
+.menu { float: right; font-weight: bold; color: #64748b; }
+details { margin-top: 8px; font-size: 14px; }
+summary { cursor: pointer; color: #2563eb; font-weight: 600; }
+.export a { display: block; padding: 6px 0; color: #2563eb; text-decoration: none; font-size: 14px; cursor: pointer; }
+.export a:hover { text-decoration: underline; }
+footer { padding: 16px 24px; font-size: 12px; color: #666; margin-top: auto; border-top: 1px solid #eee; background: #fff; }
 
-/* Ringkasan Dashboard Grid */
-.summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-.summary-card {
-  background: var(--md-sys-color-surface-container);
-  border-radius: var(--md-shape-corner-medium);
-  padding: 16px; box-shadow: var(--md-elevation-1);
-  border: 1px solid var(--md-sys-color-outline-variant);
-}
-.summary-icon { font-size: 22px; margin-bottom: 8px; display: flex; align-items: center; height: 28px; }
-.summary-label { font-size: 12px; color: var(--md-sys-color-on-surface-variant); font-weight: 500; }
-.summary-value { font-size: 18px; font-weight: 700; margin-top: 4px; color: var(--md-sys-color-on-surface); }
+/* Layout Grid Komponen Konverter */
+#panel-konverter { grid-template-columns: 1fr; max-width: 750px; margin: 0 auto; width: 100%; gap: 20px; }
+.converter-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+.converter-header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+.converter-header h2 { font-size: 20px; color: #fff; margin-bottom: 4px; }
+.converter-header p { font-size: 13px; color: #94a3b8; }
 
-/* Quick Action Grid */
-.quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.quick button {
-  background: var(--md-sys-color-surface-container);
-  color: var(--md-sys-color-on-surface);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-shape-corner-medium);
-  padding: 16px 8px; cursor: pointer; font-size: 13px; font-weight: 600;
-  box-shadow: var(--md-elevation-1); transition: 0.2s;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.quick button:active { background: var(--md-sys-color-primary-container); }
-.quick-icon { display: flex; justify-content: center; align-items: center; font-size: 22px; margin-bottom: 6px; height: 28px; }
+/* Layout Grid Komponen Notes Splitted */
+#panel-notes { grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
+.input-group-note { display: flex; gap: 8px; margin-bottom: 10px; }
+.input-group-note input { flex: 1; }
 
-/* Penjualan Item Card */
-.sale-card {
-  background: var(--md-sys-color-surface-container);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-shape-corner-medium);
-  padding: 18px; margin-bottom: 12px; box-shadow: var(--md-elevation-1);
-}
-.sale-top { display: flex; justify-content: space-between; gap: 10px; }
-.sale-customer { font-size: 16px; font-weight: 700; }
-.sale-number { color: var(--md-sys-color-on-surface-variant); font-size: 11px; margin-top: 2px; }
-.sale-total { font-size: 16px; font-weight: 700; color: var(--md-sys-color-primary); }
-.sale-info { color: var(--md-sys-color-on-surface-variant); font-size: 12px; margin-top: 8px; }
+/* Tampilan list item dinamis */
+.list-wrapper { display: flex; flex-direction: column; gap: 8px; max-height: 450px; overflow-y: auto; padding-right: 4px; }
+.note-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; gap: 10px; }
+.note-item .content-text { font-size: 14px; color: #1e293b; line-height: 1.4; word-break: break-word; }
+.note-item .timestamp { font-size: 11px; color: #94a3b8; margin-top: 4px; display: block; }
+.note-item .btn-del-note { background: transparent; color: #ef4444; padding: 4px 8px; font-size: 14px; border-radius: 6px; cursor: pointer; }
+.note-item .btn-del-note:hover { background: #fee2e2; }
 
-/* Status Badges */
-.status { display: inline-block; padding: 4px 10px; border-radius: var(--md-shape-corner-small); font-size: 11px; font-weight: 700; margin-top: 10px; }
-.status.lunas { background: var(--md-sys-color-success-container); color: var(--md-sys-color-success); }
-.status.kurang { background: var(--md-sys-color-warning-container); color: var(--md-sys-color-warning); }
-.status.kembali { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-primary); }
+/* ToDo List style */
+.todo-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; gap: 10px; }
+.todo-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+.todo-checkbox { width: 18px; height: 18px; cursor: pointer; }
+.todo-text-wrapper { flex: 1; }
+.todo-text { font-size: 14px; color: #1e293b; word-break: break-word; }
+.todo-item.done .todo-text { text-decoration: line-through; color: #94a3b8; }
 
-.action-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--md-sys-color-outline-variant); }
-.btn-sm { border: 0; padding: 8px 14px; border-radius: var(--md-shape-corner-small); font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-.btn-update { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
-.btn-export { background: var(--md-sys-color-success-container); color: var(--md-sys-color-success); }
-.btn-delete { background: var(--md-sys-color-error-container); color: var(--md-sys-color-error); }
+/* Sub-Tab Internal Konverter */
+.subtab-container { display: flex; background: rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 4px; margin-bottom: 20px; gap: 4px; }
+.subtab-btn { flex: 1; padding: 10px 5px; border: none; background: transparent; color: #94a3b8; font-size: 13px; font-weight: 600; border-radius: 7px; cursor: pointer; transition: 0.2s; text-align: center; }
+.subtab-btn.active { background: rgba(255, 255, 255, 0.15); color: #ffffff; }
+.subtab-content { display: none; }
+.subtab-content.active { display: block; }
 
-/* Note Card */
-.note {
-  background: var(--md-sys-color-surface-container);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-shape-corner-medium);
-  padding: 18px; margin-bottom: 12px; box-shadow: var(--md-elevation-1);
-}
-.note.completed { opacity: 0.6; }
-.note-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
-.note-checkbox { width: 20px; height: 20px; accent-color: var(--md-sys-color-primary); cursor: pointer; margin-top: 2px; }
-.note-title { font-size: 16px; font-weight: 700; flex: 1; }
-.note.completed .note-title { text-decoration: line-through; color: var(--md-sys-color-on-surface-variant); }
-.note p { color: var(--md-sys-color-on-surface-variant); font-size: 14px; line-height: 1.5; margin-left: 32px; }
+/* Area Seret Drop Berkas */
+.drop-area { border: 2px dashed rgba(255, 255, 255, 0.3); border-radius: 14px; padding: 30px 20px; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(255, 255, 255, 0.03); margin-bottom: 15px; position: relative; }
+.drop-area.highlight { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+.drop-area:hover { border-color: rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.05); }
+.file-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.upload-icon { font-size: 40px; color: #64748b; margin-bottom: 8px; }
+.drop-text { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+.drop-subtext { color: #64748b; font-size: 12px; }
 
-/* File Item */
-.file {
-  display: flex; gap: 14px; align-items: center;
-  background: var(--md-sys-color-surface-container);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-shape-corner-medium);
-  padding: 16px; margin-bottom: 10px; box-shadow: var(--md-elevation-1);
-}
-.file-icon {
-  width: 44px; height: 44px; border-radius: var(--md-shape-corner-small);
-  background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);
-  display: flex; justify-content: center; align-items: center; font-size: 20px;
-}
-.file-info { flex: 1; }
-.file-name { font-weight: 700; font-size: 14px; }
-.file-meta { color: var(--md-sys-color-on-surface-variant); font-size: 11px; margin-top: 2px; }
-.empty { text-align: center; color: var(--md-sys-color-on-surface-variant); padding: 35px 10px; font-size: 14px; }
+/* Informasi File Terpilih */
+.file-info { background: rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 12px; margin-bottom: 15px; display: none; align-items: center; justify-content: space-between; border: 1px solid rgba(255, 255, 255, 0.1); }
+.file-name-display { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.ready-badge { background: #10b981; color: white; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 6px; }
 
-/* FAB & Bottom Nav */
-.fab {
-  position: fixed; right: 20px; bottom: calc(84px + env(safe-area-inset-bottom));
-  width: 56px; height: 56px; border-radius: var(--md-shape-corner-medium);
-  background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);
-  font-size: 28px; font-weight: 400; box-shadow: var(--md-elevation-3); cursor: pointer; z-index: 20;
-  display: flex; align-items: center; justify-content: center; transition: transform 0.2s, background-color 0.2s;
-}
-.fab:active { transform: scale(0.92); }
+/* Daftar Urutan File Terpilih (Khusus Merger & Urutan Gambar) */
+.selected-files-list { list-style: none; margin-bottom: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); display: none; max-height: 200px; overflow-y: auto; }
+.selected-files-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.04); border-radius: 6px; margin-bottom: 4px; font-size: 12px; }
+.file-index { background: rgba(255,255,255,0.2); border-radius: 4px; padding: 1px 5px; font-weight: bold; margin-right: 6px; }
 
-.bottom-nav {
-  position: fixed; left: 0; right: 0; bottom: 0;
-  height: calc(72px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
-  background: var(--md-sys-color-surface); border-top: 1px solid var(--md-sys-color-outline-variant); z-index: 10;
-}
-.nav-inner { max-width: 650px; height: 100%; margin: auto; display: flex; align-items: center; }
-.nav {
-  flex: 1; border: 0; background: transparent; color: var(--md-sys-color-on-surface-variant);
-  cursor: pointer; font-size: 12px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-}
-.nav-icon-wrapper {
-  width: 56px; height: 28px; border-radius: var(--md-shape-corner-full);
-  display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease-in-out;
-}
-.nav-icon { font-size: 18px; display: flex; align-items: center; justify-content: center; }
-.nav.active { color: var(--md-sys-color-on-surface); font-weight: 700; }
-.nav.active .nav-icon-wrapper {
-  background-color: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-on-primary-container);
-}
+/* Tombol Aksi List */
+.list-action-btns { display: flex; gap: 4px; }
+.list-action-btns button { padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; background: rgba(255,255,255,0.15); color: #fff; }
+.list-action-btns button:hover { background: rgba(255,255,255,0.3); }
+.list-action-btns button.btn-list-del { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.list-action-btns button.btn-list-del:hover { background: rgba(239, 68, 68, 0.4); }
 
-/* MODALS & FORMS */
-.overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-  display: none; align-items: flex-end; justify-content: center; z-index: 100; backdrop-filter: blur(2px);
-}
-.overlay.show { display: flex; }
-.modal {
-  width: 100%; max-width: 650px; max-height: 88vh; overflow-y: auto;
-  background: var(--md-sys-color-surface-container);
-  border-radius: var(--md-shape-corner-large) var(--md-shape-corner-large) 0 0;
-  padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); box-shadow: var(--md-elevation-3);
-  animation: slideUp 0.25s cubic-bezier(0, 0, 0.2, 1);
-}
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.modal-head h2 { font-size: 20px; font-weight: 700; }
-.close {
-  width: 36px; height: 36px; border-radius: var(--md-shape-corner-full);
-  background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface);
-  cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;
-}
+/* Opsi Baris Pengaturan Komponen Konverter */
+.control-group { margin-bottom: 15px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); }
+.control-group label { font-size: 13px; font-weight: 600; color: #cbd5e1; }
+.option-buttons { display: flex; flex: 1; gap: 6px; }
+.option-btn { flex: 1; padding: 8px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.02); color: #cbd5e1; cursor: pointer; transition: 0.2s; text-align: center; }
+.option-btn.active { background: #2563eb; color: #ffffff; border-color: #3b82f6; font-weight: 600; }
+.option-btn:hover:not(.active) { background: rgba(255,255,255,0.08); }
 
-.form-group { margin-bottom: 14px; }
-.form-group label { display: block; color: var(--md-sys-color-on-surface-variant); font-size: 12px; font-weight: 500; margin-bottom: 6px; }
-.form-group input, .form-group textarea, .form-group select {
-  width: 100%; border: 1px solid var(--md-sys-color-outline); border-radius: var(--md-shape-corner-small);
-  background: var(--md-sys-color-background); color: var(--md-sys-color-on-surface); padding: 12px 14px; font-size: 14px; transition: border-color 0.2s;
-}
-.form-group textarea { min-height: 90px; resize: vertical; }
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--md-sys-color-primary); border-width: 2px; }
+/* Progress & Status Batang Proses */
+.status-box { margin: 12px 0; padding: 10px; border-radius: 8px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.05); }
+.status-info { background: rgba(59, 130, 246, 0.1); color: #93c5fd; }
+.status-success { background: rgba(16, 185, 129, 0.1); color: #6ee7b7; }
+.status-error { background: rgba(239, 68, 68, 0.1); color: #fca5a5; }
+.progress-container { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin: 12px 0; overflow: hidden; display: none; }
+.progress-fill { height: 100%; width: 0%; background: #2563eb; border-radius: 3px; transition: width 0.1s ease; }
 
-.items-header { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 12px; }
-.items-title { font-weight: 700; font-size: 15px; }
-.add-item { border: 0; background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-radius: var(--md-shape-corner-full); padding: 6px 14px; cursor: pointer; font-weight: 600; font-size: 12px; }
-.item-row { background: var(--md-sys-color-background); border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-shape-corner-medium); padding: 14px; margin-bottom: 10px; }
-.item-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
-.item-grid .full { grid-column: 1/-1; }
-.item-field { display: flex; flex-direction: column; }
-.item-field label { font-size: 11px; color: var(--md-sys-color-on-surface-variant); margin-bottom: 4px; }
-.item-field input { width: 100%; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-shape-corner-small); background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface); padding: 8px 10px; font-size: 13px; }
-.item-total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--md-sys-color-outline-variant); font-size: 12px; }
-.item-total b { color: var(--md-sys-color-primary); font-size: 13px; }
-.remove-item { border: 0; background: var(--md-sys-color-error-container); color: var(--md-sys-color-error); border-radius: var(--md-shape-corner-small); padding: 4px 10px; cursor: pointer; font-size: 11px; font-weight: 600; }
+/* Area Download Hasil Gambar/PDF */
+.download-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: none; }
+.download-section h3 { font-size: 15px; margin-bottom: 10px; }
+.download-list { list-style: none; max-height: 200px; overflow-y: auto; }
+.download-link { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; color: #fff; text-decoration: none; font-size: 13px; margin-bottom: 6px; }
+.download-link:hover { background: rgba(255,255,255,0.08); transform: translateX(2px); }
+.download-action { color: #3b82f6; font-weight: 600; }
+.btn-zip { background: #7c3aed; display: none; margin-top: 10px; }
+.btn-zip:hover { background: #6d28d9; }
 
-.total-box { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-radius: var(--md-shape-corner-medium); padding: 16px; margin: 16px 0; }
-.total-line { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
-.grand-total { font-size: 18px; font-weight: 700; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.1); margin-top: 6px; }
-.payment-result { border-radius: var(--md-shape-corner-small); padding: 12px; margin: 12px 0; font-size: 13px; }
-.payment-lunas { background: var(--md-sys-color-success-container); color: var(--md-sys-color-success); }
-.payment-kurang { background: var(--md-sys-color-warning-container); color: var(--md-sys-color-warning); }
-.payment-kembali { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-primary); }
-.submit { width: 100%; border: 0; border-radius: var(--md-shape-corner-full); padding: 14px; background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); font-weight: 700; cursor: pointer; font-size: 15px; box-shadow: var(--md-elevation-1); margin-top: 8px; }
+/* Styling Tersembunyi khusus Template Nota TXT / PNG Kasir */
+#invoice-template { position: absolute; left: -9999px; top: -9999px; width: 320px; background: #fff; padding: 20px; font-family: 'Courier New', Courier, monospace; color: #000; }
+.inv-header { text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px; }
+.inv-meta { font-size: 12px; margin-bottom: 10px; }
+.inv-table { width: 100%; font-size: 12px; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+.inv-table th { text-align: left; border-bottom: 1px dashed #000; }
+.inv-summary { font-size: 13px; text-align: right; }
+.inv-footer { text-align: center; font-size: 11px; margin-top: 15px; border-top: 1px dashed #000; padding-top: 5px; }
 
-/* Receipt Export PNG Styling */
-#receipt-container { display: none; }
-.receipt-wrapper { width: 320px; background: #fff; color: #000; padding: 20px; font-family: 'Courier New', Courier, monospace; }
-.receipt-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 12px; margin-bottom: 12px; }
-.receipt-header h3 { font-size: 18px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; }
-.receipt-header p { font-size: 11px; }
-.receipt-info { font-size: 11px; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 8px; }
-.receipt-table { width: 100%; font-size: 11px; border-collapse: collapse; margin-bottom: 10px; }
-.receipt-table th, .receipt-table td { text-align: left; padding: 3px 0; }
-.receipt-table .num { text-align: right; }
-.receipt-divider { border-top: 1px dashed #000; margin: 8px 0; }
-.receipt-summary { font-size: 11px; margin-top: 6px; }
-.receipt-summary-line { display: flex; justify-content: space-between; margin-bottom: 4px; }
-.receipt-footer { text-align: center; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #000; font-size: 11px; }
+/* Modal Pratinjau Nota */
+.modal-preview { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+.modal-content { background-color: #fff; padding: 20px; border-radius: 12px; max-width: 360px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); position: relative; }
+.modal-close { position: absolute; top: 10px; right: 15px; font-size: 20px; font-weight: bold; cursor: pointer; color: #64748b; }
+.modal-close:hover { color: #1e293b; }
+.modal-body-invoice { background: #fff; max-height: 70vh; overflow-y: auto; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; }
 
-@media(max-width:480px){ .item-grid { grid-template-columns: 1fr 1fr; } }
-@media(min-width:700px){ .summary { grid-template-columns: repeat(4, 1fr); } .overlay { align-items: center; } .modal { border-radius: var(--md-shape-corner-large); } }
-
-.customer-card,.job-card,.debt-card{ background:var(--md-sys-color-surface-container); border:1px solid var(--md-sys-color-outline-variant); border-radius:var(--md-shape-corner-medium); padding:16px;margin-bottom:10px;box-shadow:var(--md-elevation-1) }
-.customer-top,.job-top,.debt-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.customer-name,.job-title,.debt-name{font-size:15px;font-weight:700}
-.customer-meta,.job-meta,.debt-meta{font-size:12px;color:var(--md-sys-color-on-surface-variant);margin-top:5px}
-.job-status{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700;margin-top:9px}
-.job-menunggu{background:var(--md-sys-color-warning-container);color:var(--md-sys-color-warning)}
-.job-diproses{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}
-.job-selesai,.job-diambil{background:var(--md-sys-color-success-container);color:var(--md-sys-color-success)}
-.job-dibatalkan{background:var(--md-sys-color-error-container);color:var(--md-sys-color-error)}
-.stat-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.stat-mini div{padding:10px;border-radius:12px;background:var(--md-sys-color-background);text-align:center}
-.stat-mini b{display:block;font-size:13px}
-.stat-mini span{font-size:10px;color:var(--md-sys-color-on-surface-variant)}
-.filter-row{display:flex;gap:8px;overflow:auto;margin-bottom:12px}
-.filter-row button{white-space:nowrap;border:1px solid var(--md-sys-color-outline-variant);background:var(--md-sys-color-surface-container);color:var(--md-sys-color-on-surface);padding:8px 12px;border-radius:999px;font-size:12px;cursor:pointer}
-.filter-row button.active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);font-weight:700}
-@media(max-width:480px){.stat-mini{grid-template-columns:1fr 1fr}.bottom-nav .nav{font-size:10px}.nav-icon{font-size:16px}}
+canvas { display: none; }
+@media(max-width:900px){ #panel-kasir { grid-template-columns: 1fr; } #panel-notes { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
-<!-- TEMPLATE SVG DEBT COLLECTION ROUND ICON -->
-<svg style="display: none;">
-  <symbol id="icon-debt-collection-round" viewBox="0 0 24 24">
-    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zM3.5 12a8.5 8.5 0 1117 0 8.5 8.5 0 01-17 0zm11.75-3.25a.75.75 0 000-1.5h-2.5V6a.75.75 0 00-1.5 0v1.25h-.5a2.75 2.75 0 000 5.5h2.5a1.25 1.25 0 110 2.5h-3.5a.75.75 0 000 1.5h2.5V18a.75.75 0 001.5 0v-1.25h.5a2.75 2.75 0 000-5.5h-2.5a1.25 1.25 0 110-2.5h3.5z"/>
-  </symbol>
-</svg>
-
-<header class="header">
-  <div class="header-top">
-    <div>
-      <div class="greeting">Catatan pekerjaan pribadi</div>
-      <h1 id="pageTitle">Beranda</h1>
+<div id="auth-wall">
+    <div class="auth-card">
+        <h2>Delta Workspace V4</h2>
+        <p>Silakan masukkan kode akses kasir</p>
+        <input type="password" id="app-passkey" placeholder="••••" autofocus>
+        <button id="btn-login">Masuk Sistem</button>
+        <div id="login-err" style="color: #ef4444; font-size: 12px; margin-top: 8px; font-weight: 600; display: none;">❌ Kode sandi salah!</div>
     </div>
-    <button class="theme-btn" onclick="toggleDark()" title="Ubah Tema">◐</button>
-  </div>
-</header>
-
-<main class="container">
-  <section id="home" class="page active">
-    <div class="card">
-      <div class="greeting">Hari ini</div>
-      <h2 id="today" style="font-size: 22px; font-weight: 700; margin-top: 4px;"></h2>
-    </div>
-
-    <div class="section-title">Ringkasan</div>
-    <div class="summary">
-      <div class="summary-card"><div class="summary-icon">💰</div><div class="summary-label">Total Penjualan</div><div class="summary-value" id="dashboardSales">Rp0</div></div>
-      <div class="summary-card"><div class="summary-icon">🧾</div><div class="summary-label">Transaksi</div><div class="summary-value" id="dashboardTransactions">0</div></div>
-      <div class="summary-card"><div class="summary-icon">📝</div><div class="summary-label">Notes</div><div class="summary-value" id="dashboardNotes">0</div></div>
-      <div class="summary-card"><div class="summary-icon">📁</div><div class="summary-label">Files</div><div class="summary-value" id="dashboardFiles">0</div></div>
-      <div class="summary-card"><div class="summary-icon">👥</div><div class="summary-label">Pelanggan</div><div class="summary-value" id="dashboardCustomers">0</div></div>
-      <div class="summary-card"><div class="summary-icon">📋</div><div class="summary-label">Pekerjaan Aktif</div><div class="summary-value" id="dashboardJobs">0</div></div>
-      <div class="summary-card">
-        <div class="summary-icon">
-          <svg class="icon-svg"><use href="#icon-debt-collection-round"/></svg>
-        </div>
-        <div class="summary-label">Piutang</div>
-        <div class="summary-value" id="dashboardDebt">Rp0</div>
-      </div>
-    </div>
-
-    <div class="section-title">Akses cepat</div>
-    <div class="quick">
-      <button onclick="openSaleModal()"><span class="quick-icon">💰</span>Penjualan</button>
-      <button onclick="openNoteModal()"><span class="quick-icon">📝</span>Note</button>
-      <button onclick="openFileModal()"><span class="quick-icon">📁</span>File</button>
-      <button onclick="openCustomerModal()"><span class="quick-icon">👤</span>Pelanggan</button>
-      <button onclick="openJobModal()"><span class="quick-icon">📋</span>Pekerjaan</button>
-      <button onclick="showPage('debts',document.querySelectorAll('.nav')[6])">
-        <span class="quick-icon">
-          <svg class="icon-svg"><use href="#icon-debt-collection-round"/></svg>
-        </span>
-        Piutang
-      </button>
-    </div>
-
-    <div class="section-title">Backup & Restore</div>
-    <div class="quick" style="grid-template-columns: repeat(2, 1fr);">
-      <button onclick="exportAllData()"><span class="quick-icon">📤</span>Ekspor Data (JSON)</button>
-      <button onclick="triggerImport()"><span class="quick-icon">📥</span>Impor Data (JSON)</button>
-    </div>
-    <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importAllData(event)">
-
-    <div class="section-title">Transaksi terbaru</div>
-    <div id="recentSales"></div>
-  </section>
-
-  <section id="sales" class="page">
-    <div class="search"><span>⌕</span><input placeholder="Cari pelanggan atau barang..." oninput="searchSales(this.value)"></div>
-    <div class="card">
-      <div class="greeting">Total nilai penjualan</div>
-      <div id="salesTotal" style="font-size: 28px; font-weight: 700; margin-top: 4px; color: var(--md-sys-color-primary);">Rp0</div>
-    </div>
-    <div class="section-title">Daftar transaksi</div>
-    <div id="salesList"></div>
-  </section>
-
-  <section id="notes" class="page">
-    <div class="search"><span>⌕</span><input placeholder="Cari catatan..." oninput="searchNotes(this.value)"></div>
-    <div id="notesList"></div>
-  </section>
-
-  <section id="files" class="page">
-    <div class="search"><span>⌕</span><input placeholder="Cari file..." oninput="searchFiles(this.value)"></div>
-    <div id="filesList"></div>
-  </section>
-
-  <section id="customers" class="page">
-    <div class="search"><span>⌕</span><input placeholder="Cari nama / nomor HP..." oninput="searchCustomers(this.value)"></div>
-    <div id="customersList"></div>
-  </section>
-
-  <section id="jobs" class="page">
-    <div class="filter-row" id="jobFilters">
-      <button class="active" onclick="filterJobs('Semua',this)">Semua</button>
-      <button onclick="filterJobs('Menunggu',this)">Menunggu</button>
-      <button onclick="filterJobs('Diproses',this)">Diproses</button>
-      <button onclick="filterJobs('Selesai',this)">Selesai</button>
-      <button onclick="filterJobs('Diambil',this)">Diambil</button>
-    </div>
-    <div id="jobsList"></div>
-  </section>
-
-  <section id="debts" class="page">
-    <div class="card">
-      <div class="greeting">Total piutang belum lunas</div>
-      <div id="debtTotal" style="font-size:28px;font-weight:700;margin-top:4px;color:var(--md-sys-color-warning);">Rp0</div>
-    </div>
-    <div id="debtsList"></div>
-  </section>
-</main>
-
-<button class="fab" onclick="openCurrentModal()" title="Tambah Baru">+</button>
-
-<nav class="bottom-nav">
-  <div class="nav-inner">
-    <button class="nav active" onclick="showPage('home',this)">
-      <div class="nav-icon-wrapper"><span class="nav-icon">⌂</span></div>
-      <span>Beranda</span>
-    </button>
-    <button class="nav" onclick="showPage('sales',this)">
-      <div class="nav-icon-wrapper"><span class="nav-icon">₽</span></div>
-      <span>Penjualan</span>
-    </button>
-    <button class="nav" onclick="showPage('notes',this)">
-      <div class="nav-icon-wrapper"><span class="nav-icon">▤</span></div>
-      <span>Note</span>
-    </button>
-    <button class="nav" onclick="showPage('files',this)">
-      <div class="nav-icon-wrapper"><span class="nav-icon">▱</span></div>
-      <span>Files</span>
-    </button>
-    <button class="nav" onclick="showPage('customers',this)">
-      <div class="nav-icon-wrapper"><span class="nav-icon">♙</span></div>
-      <span>Pelanggan</span>
-    </button>
-    <button class="nav" onclick="showPage('jobs',this)">
-      <div class="nav-icon-wrapper"><span class="nav-icon">☷</span></div>
-      <span>Pekerjaan</span>
-    </button>
-    <button class="nav" onclick="showPage('debts',this)">
-      <div class="nav-icon-wrapper">
-        <span class="nav-icon">
-          <svg class="icon-svg"><use href="#icon-debt-collection-round"/></svg>
-        </span>
-      </div>
-      <span>Piutang</span>
-    </button>
-  </div>
-</nav>
-
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <div class="modal-head">
-      <h2 id="modalTitle">Tambah</h2>
-      <button class="close" onclick="closeModal()">✕</button>
-    </div>
-    <div id="modalContent"></div>
-  </div>
 </div>
 
-<div id="receipt-container"></div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { 
-    getDatabase, 
-    ref, 
-    push, 
-    remove, 
-    update,
-    set,
-    onValue 
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBEQ112S4jQYD8lFMdaQ2UDYZ3KtgewQgI",
-    authDomain: "project-7cbcc.firebaseapp.com",
-    databaseURL: "https://project-7cbcc-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "project-7cbcc",
-    storageBucket: "project-7cbcc.firebasestorage.app",
-    messagingSenderId: "644697990603",
-    appId: "1:644697990603:web:54be670bc27a1c251a424e",
-    measurementId: "G-7FPXFCX3JW"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  const salesRef = ref(db, "sales");
-  const notesRef = ref(db, "notes");
-  const filesRef = ref(db, "files");
-  const customersRef = ref(db, "customers");
-  const jobsRef = ref(db, "jobs");
-
-  let sales = [];
-  let notes = [];
-  let files = [];
-  let customers = [];
-  let jobs = [];
-  let currentPage = "home", itemCounter = 0, currentJobFilter = "Semua";
-
-  onValue(salesRef, (snapshot) => {
-    const data = snapshot.val();
-    sales = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse() : [];
-    renderAll();
-  });
-
-  onValue(notesRef, (snapshot) => {
-    const data = snapshot.val();
-    notes = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse() : [];
-    renderAll();
-  });
-
-  onValue(filesRef, (snapshot) => {
-    const data = snapshot.val();
-    files = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse() : [];
-    renderAll();
-  });
-
-  onValue(customersRef, (snapshot) => {
-    const data = snapshot.val();
-    customers = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse() : [];
-    renderAll();
-  });
-
-  onValue(jobsRef, (snapshot) => {
-    const data = snapshot.val();
-    jobs = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })).reverse() : [];
-    renderAll();
-  });
-
-  window.showPage = function(page, button) {
-    currentPage = page;
-    document.querySelectorAll(".page").forEach(x => x.classList.remove("active"));
-    document.getElementById(page).classList.add("active");
-    document.querySelectorAll(".nav").forEach(x => x.classList.remove("active"));
-    button.classList.add("active");
-    document.getElementById("pageTitle").textContent = {home:"Beranda", sales:"Penjualan", notes:"Note", files:"Files", customers:"Pelanggan", jobs:"Pekerjaan", debts:"Piutang"}[page];
-    renderAll();
-  };
-
-  window.toggleDark = function() {
-    document.body.classList.toggle("dark");
-    const isDark = document.body.classList.contains("dark");
-    localStorage.setItem("dark", isDark);
-    document.getElementById("themeColorMeta").setAttribute("content", isDark ? "#111318" : "#f8f9ff");
-  };
-
-  if(localStorage.getItem("dark") === "true") {
-    document.body.classList.add("dark");
-    document.getElementById("themeColorMeta").setAttribute("content", "#111318");
-  }
-
-  window.openModal = function(title, html) {
-    document.getElementById("modalTitle").textContent = title;
-    document.getElementById("modalContent").innerHTML = html;
-    document.getElementById("overlay").classList.add("show");
-  };
-
-  window.closeModal = function() {
-    document.getElementById("overlay").classList.remove("show");
-  };
-
-  // --- EKSPOR & IMPOR DATA (JSON) ---
-  window.exportAllData = function() {
-    let backupData = {
-      sales: sales,
-      notes: notes,
-      files: files,
-      customers: customers,
-      jobs: jobs,
-      exportedAt: new Date().toISOString()
-    };
-
-    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-    let downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `Backup_WorkNotes_${todayISO()}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
-  window.triggerImport = function() {
-    document.getElementById("importFileInput").click();
-  };
-
-  window.importAllData = function(event) {
-    let file = event.target.files[0];
-    if(!file) return;
-
-    let reader = new FileReader();
-    reader.onload = async function(e) {
-      try {
-        let imported = JSON.parse(e.target.result);
-        if(!confirm("Proses ini akan mengunggah data dari file ke Cloud. Lanjutkan?")) return;
-
-        if(imported.sales && Array.isArray(imported.sales)) {
-          for(let item of imported.sales) {
-            let id = item.id;
-            let data = {...item};
-            delete data.id;
-            await set(ref(db, "sales/" + (id || Date.now())), data);
-          }
-        }
-
-        if(imported.notes && Array.isArray(imported.notes)) {
-          for(let item of imported.notes) {
-            let id = item.id;
-            let data = {...item};
-            delete data.id;
-            await set(ref(db, "notes/" + (id || Date.now())), data);
-          }
-        }
-
-        if(imported.files && Array.isArray(imported.files)) {
-          for(let item of imported.files) {
-            let id = item.id;
-            let data = {...item};
-            delete data.id;
-            await set(ref(db, "files/" + (id || Date.now())), data);
-          }
-        }
-
-        if(imported.customers && Array.isArray(imported.customers)) {
-          for(let item of imported.customers) {
-            let id = item.id;
-            let data = {...item};
-            delete data.id;
-            await set(ref(db, "customers/" + (id || Date.now())), data);
-          }
-        }
-
-        if(imported.jobs && Array.isArray(imported.jobs)) {
-          for(let item of imported.jobs) {
-            let id = item.id;
-            let data = {...item};
-            delete data.id;
-            await set(ref(db, "jobs/" + (id || Date.now())), data);
-          }
-        }
-
-        alert("Berhasil mengimpor data ke Cloud!");
-      } catch(err) {
-        alert("Gagal membaca file backup: " + err.message);
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = "";
-  };
-
-  // --- NOTE CHECKLIST & ACTIONS ---
-  window.openNoteModal = function(id = null) {
-    let note = id ? notes.find(n => n.id === id) : null;
-    let isEdit = !!note;
-
-    openModal(isEdit ? "Edit Note" : "Tambah Note", `
-      <div class="form-group"><label>Judul Catatan</label><input id="noteTitle" value="${note ? escapeHTML(note.title) : ''}" placeholder="Judul catatan"></div>
-      <div class="form-group"><label>Isi Catatan</label><textarea id="noteContent" placeholder="Tulis catatan...">${note ? escapeHTML(note.content) : ''}</textarea></div>
-      <div class="form-group"><label>Kategori</label>
-        <select id="noteCategory">
-          <option ${note && note.category === 'Pekerjaan' ? 'selected' : ''}>Pekerjaan</option>
-          <option ${note && note.category === 'Pelanggan' ? 'selected' : ''}>Pelanggan</option>
-          <option ${note && note.category === 'Ide' ? 'selected' : ''}>Ide</option>
-          <option ${note && note.category === 'Lainnya' ? 'selected' : ''}>Lainnya</option>
-        </select>
-      </div>
-      <button class="submit" onclick="saveNote('${id || ''}')">${isEdit ? 'Perbarui Note' : 'Simpan Note (Cloud)'}</button>
-    `);
-  };
-
-  window.saveNote = async function(id = '') {
-    let title = document.getElementById("noteTitle").value.trim(),
-        content = document.getElementById("noteContent").value.trim(),
-        category = document.getElementById("noteCategory").value;
-    if(!title && !content) return alert("Isi note terlebih dahulu.");
-
-    try {
-      if(id) {
-        await update(ref(db, "notes/" + id), { title: title || "Tanpa judul", content, category });
-      } else {
-        await push(notesRef, {
-          title: title || "Tanpa judul", content, category, completed: false,
-          date: new Date().toLocaleString("id-ID"), timestamp: Date.now()
-        });
-      }
-      closeModal();
-    } catch(e) {
-      alert("Gagal menyimpan catatan: " + e.message);
-    }
-  };
-
-  window.toggleNoteStatus = async function(id, currentStatus) {
-    try {
-      await update(ref(db, "notes/" + id), { completed: !currentStatus });
-    } catch(e) {
-      alert("Gagal mengubah status catatan: " + e.message);
-    }
-  };
-
-  window.deleteNote = async function(id) {
-    if(!confirm("Hapus catatan ini?")) return;
-    try {
-      await remove(ref(db, "notes/" + id));
-    } catch(e) {
-      alert("Gagal menghapus: " + e.message);
-    }
-  };
-
-  function renderNotes(data = notes) {
-    let list = document.getElementById("notesList");
-    if(!data.length){ list.innerHTML = `<div class="empty">Belum ada catatan.</div>`; return; }
-    list.innerHTML = data.map(note => `
-      <div class="note ${note.completed ? 'completed' : ''}">
-        <div class="note-header">
-          <input type="checkbox" class="note-checkbox" ${note.completed ? 'checked' : ''} onclick="toggleNoteStatus('${note.id}', ${!!note.completed})">
-          <div class="note-title">${escapeHTML(note.title)}</div>
-        </div>
-        <p>${escapeHTML(note.content)}</p>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;margin-left:32px">
-          <div style="color:var(--md-sys-color-on-surface-variant);font-size:11px">${escapeHTML(note.category)} · ${note.date}</div>
-          <div>
-            <button class="btn-sm btn-update" onclick="openNoteModal('${note.id}')">Edit</button>
-            <button class="btn-sm btn-delete" onclick="deleteNote('${note.id}')">Hapus</button>
-          </div>
-        </div>
-      </div>
-    `).join("");
-  }
-
-
-  // ===== PELANGGAN =====
-  window.openCustomerModal = function(id = null) {
-    const c = id ? customers.find(x => x.id === id) : null;
-    openModal(c ? "Edit Pelanggan" : "Tambah Pelanggan", `
-      <div class="form-group"><label>Nama Pelanggan</label><input id="custName" value="${c ? escapeHTML(c.name) : ''}" placeholder="Nama pelanggan"></div>
-      <div class="form-group"><label>No. HP / WhatsApp</label><input id="custPhone" value="${c ? escapeHTML(c.phone) : ''}" placeholder="08xxxxxxxxxx"></div>
-      <div class="form-group"><label>Alamat</label><textarea id="custAddress" placeholder="Alamat pelanggan">${c ? escapeHTML(c.address) : ''}</textarea></div>
-      <button class="submit" onclick="saveCustomer('${id || ''}')">${c ? 'Perbarui Pelanggan' : 'Simpan Pelanggan'}</button>
-    `);
-  };
-
-  window.saveCustomer = async function(id = '') {
-    const name = document.getElementById("custName").value.trim();
-    const phone = document.getElementById("custPhone").value.trim();
-    const address = document.getElementById("custAddress").value.trim();
-    if(!name) return alert("Nama pelanggan harus diisi.");
-    try {
-      const data = {name, phone, address, updatedAt: Date.now()};
-      if(id) await update(ref(db, "customers/" + id), data);
-      else await push(customersRef, {...data, createdAt: Date.now()});
-      closeModal();
-    } catch(e) { alert("Gagal menyimpan pelanggan: " + e.message); }
-  };
-
-  window.deleteCustomer = async function(id) {
-    if(!confirm("Hapus data pelanggan ini? Riwayat transaksi tidak ikut terhapus.")) return;
-    try { await remove(ref(db, "customers/" + id)); }
-    catch(e) { alert("Gagal menghapus pelanggan: " + e.message); }
-  };
-
-  window.searchCustomers = function(q) {
-    q = q.toLowerCase();
-    renderCustomers(customers.filter(c => (c.name||'').toLowerCase().includes(q) || (c.phone||'').toLowerCase().includes(q)));
-  };
-
-  function renderCustomers(data = customers) {
-    const list = document.getElementById("customersList");
-    if(!data.length){ list.innerHTML = '<div class="empty">Belum ada pelanggan.</div>'; return; }
-    list.innerHTML = data.map(c => {
-      const csales = sales.filter(s => s.customer === c.name || (c.phone && s.phone === c.phone));
-      const total = csales.reduce((a,s)=>a+(Number(s.total)||0),0);
-      const debt = csales.reduce((a,s)=>a+(s.status==="Kekurangan" ? Number(s.difference)||0 : 0),0);
-      return `<div class="customer-card">
-        <div class="customer-top">
-          <div><div class="customer-name">👤 ${escapeHTML(c.name)}</div>
-          <div class="customer-meta">${c.phone ? '📱 '+escapeHTML(c.phone) : 'Tidak ada nomor HP'}</div>
-          ${c.address ? `<div class="customer-meta">📍 ${escapeHTML(c.address)}</div>` : ''}</div>
-          <div>
-            <button class="btn-sm btn-update" onclick="openCustomerModal('${c.id}')">Edit</button>
-            <button class="btn-sm btn-delete" onclick="deleteCustomer('${c.id}')">Hapus</button>
-          </div>
-        </div>
-        <div class="stat-mini">
-          <div><b>${csales.length}</b><span>Transaksi</span></div>
-          <div><b>${formatRupiah(total)}</b><span>Total Belanja</span></div>
-          <div><b>${formatRupiah(debt)}</b><span>Piutang</span></div>
-        </div>
-      </div>`;
-    }).join("");
-  }
-
-  // ===== PEKERJAAN =====
-  window.openJobModal = function(id = null) {
-    const j = id ? jobs.find(x => x.id === id) : null;
-    const customerOptions = customers.map(c => `<option value="${escapeHTML(c.name)}" ${j && j.customer===c.name ? 'selected':''}>${escapeHTML(c.name)}${c.phone ? ' — '+escapeHTML(c.phone):''}</option>`).join("");
-    openModal(j ? "Edit Pekerjaan" : "Tambah Pekerjaan", `
-      <div class="form-group"><label>Pelanggan</label>
-        <select id="jobCustomer"><option value="">-- Pilih pelanggan --</option>${customerOptions}</select>
-      </div>
-      <div class="form-group"><label>Nama Pekerjaan</label><input id="jobTitle" value="${j ? escapeHTML(j.title):''}" placeholder="Contoh: Cetak undangan 200 lembar"></div>
-      <div class="form-group"><label>Detail Pekerjaan</label><textarea id="jobDescription" placeholder="Ukuran, bahan, jumlah, catatan...">${j ? escapeHTML(j.description):''}</textarea></div>
-      <div class="form-group"><label>Status</label><select id="jobStatus">
-        ${["Menunggu","Diproses","Selesai","Diambil","Dibatalkan"].map(s=>`<option ${j && j.status===s?'selected':''}>${s}</option>`).join("")}
-      </select></div>
-      <div class="form-group"><label>Deadline</label><input id="jobDueDate" type="date" value="${j ? (j.dueDate||''):''}"></div>
-      <div class="form-group"><label>Harga / Nilai Pekerjaan</label><input id="jobPrice" type="number" min="0" value="${j ? (j.price||0):0}"></div>
-      <button class="submit" onclick="saveJob('${id || ''}')">${j ? 'Perbarui Pekerjaan' : 'Simpan Pekerjaan'}</button>
-    `);
-  };
-
-  window.saveJob = async function(id = '') {
-    const customer = document.getElementById("jobCustomer").value.trim();
-    const title = document.getElementById("jobTitle").value.trim();
-    const description = document.getElementById("jobDescription").value.trim();
-    const status = document.getElementById("jobStatus").value;
-    const dueDate = document.getElementById("jobDueDate").value;
-    const price = Number(document.getElementById("jobPrice").value) || 0;
-    if(!title) return alert("Nama pekerjaan harus diisi.");
-    try {
-      const data = {customer,title,description,status,dueDate,price,updatedAt:Date.now()};
-      if(id) await update(ref(db, "jobs/" + id), data);
-      else await push(jobsRef, {...data, number:"JOB-"+Date.now().toString().slice(-6),createdAt:Date.now()});
-      closeModal();
-    } catch(e) { alert("Gagal menyimpan pekerjaan: " + e.message); }
-  };
-
-  window.updateJobStatus = async function(id, status) {
-    try { await update(ref(db, "jobs/" + id), {status, updatedAt:Date.now()}); }
-    catch(e) { alert("Gagal mengubah status pekerjaan: " + e.message); }
-  };
-
-  window.deleteJob = async function(id) {
-    if(!confirm("Hapus pekerjaan ini?")) return;
-    try { await remove(ref(db, "jobs/" + id)); }
-    catch(e) { alert("Gagal menghapus pekerjaan: " + e.message); }
-  };
-
-  window.filterJobs = function(status, btn) {
-    currentJobFilter = status;
-    document.querySelectorAll("#jobFilters button").forEach(b=>b.classList.remove("active"));
-    if(btn) btn.classList.add("active");
-    renderJobs();
-  };
-
-  function renderJobs(data = jobs) {
-    const list = document.getElementById("jobsList");
-    if(currentJobFilter !== "Semua") data = data.filter(j=>j.status===currentJobFilter);
-    if(!data.length){ list.innerHTML = '<div class="empty">Belum ada pekerjaan.</div>'; return; }
-    list.innerHTML = data.map(j => {
-      const cls = "job-" + (j.status||"Menunggu").toLowerCase();
-      const customer = customers.find(c=>c.name===j.customer);
-      return `<div class="job-card">
-        <div class="job-top">
-          <div><div class="job-title">📋 ${escapeHTML(j.title)}</div>
-          <div class="job-meta">${j.number||''} · ${escapeHTML(j.customer||'Tanpa pelanggan')}</div></div>
-          <b>${formatRupiah(j.price||0)}</b>
-        </div>
-        <span class="job-status ${cls}">${escapeHTML(j.status||'Menunggu')}</span>
-        ${j.description ? `<div class="job-meta">📝 ${escapeHTML(j.description)}</div>`:''}
-        ${j.dueDate ? `<div class="job-meta">📅 Deadline: <b>${formatDate(j.dueDate)}</b></div>`:''}
-        ${customer && customer.phone ? `<div class="job-meta">📱 ${escapeHTML(customer.phone)}</div>`:''}
-        <div class="action-row">
-          <button class="btn-sm btn-update" onclick="openJobModal('${j.id}')">Edit</button>
-          <button class="btn-sm btn-export" onclick="updateJobStatus('${j.id}','${j.status==='Selesai'?'Diambil':'Selesai'}')">${j.status==='Selesai'?'Tandai Diambil':'Tandai Selesai'}</button>
-          <button class="btn-sm btn-delete" onclick="deleteJob('${j.id}')">Hapus</button>
-        </div>
-      </div>`;
-    }).join("");
-  }
-
-  // ===== PIUTANG =====
-  function renderDebts() {
-    const debtSales = sales.filter(s=>s.status==="Kekurangan" && Number(s.difference)>0);
-    const totalDebt = debtSales.reduce((a,s)=>a+(Number(s.difference)||0),0);
-    document.getElementById("debtTotal").textContent = formatRupiah(totalDebt);
-    const list = document.getElementById("debtsList");
-    if(!debtSales.length){ list.innerHTML='<div class="empty">Tidak ada piutang. Semua transaksi lunas. 🎉</div>'; return; }
-    list.innerHTML = debtSales.map(s=>`
-      <div class="debt-card">
-        <div class="debt-top">
-          <div><div class="debt-name"><svg class="icon-svg"><use href="#icon-debt-collection-round"/></svg> ${escapeHTML(s.customer)}</div>
-          <div class="debt-meta">${s.number} · ${s.date}</div>
-          ${s.phone?`<div class="debt-meta">📱 ${escapeHTML(s.phone)}</div>`:''}
-          ${s.dueDate?`<div class="debt-meta">📅 Jatuh tempo: <b>${formatDate(s.dueDate)}</b></div>`:''}</div>
-          <div style="text-align:right"><div style="font-weight:700;color:var(--md-sys-color-warning)">${formatRupiah(s.difference)}</div><div class="debt-meta">sisa</div></div>
-        </div>
-        <div class="action-row">
-          <button class="btn-sm btn-update" onclick="openUpdatePaymentModal('${s.id}')"><svg class="icon-svg" style="width:14px;height:14px;"><use href="#icon-debt-collection-round"/></svg> Bayar</button>
-          <button class="btn-sm btn-export" onclick="exportReceiptPNG('${s.id}')">🖼️ Struk</button>
-        </div>
-      </div>`).join("");
-  }
-
-  // --- PEMBAYARAN & EKSPOR STRUK PNG ---
-  window.openUpdatePaymentModal = function(id) {
-    let sale = sales.find(s => s.id === id);
-    if(!sale) return;
-
-    openModal("Update Pembayaran", `
-      <div style="margin-bottom:15px;background:var(--md-sys-color-background);padding:14px;border-radius:var(--md-shape-corner-medium)">
-        <div style="font-weight:700;font-size:15px">${escapeHTML(sale.customer)} (${sale.number})</div>
-        <div style="font-size:13px;color:var(--md-sys-color-on-surface-variant);margin-top:4px">Total Tagihan: <b>${formatRupiah(sale.total)}</b></div>
-      </div>
-      <div class="form-group">
-        <label>Jumlah Pembayaran Baru (Rp)</label>
-        <input id="newPayment" type="number" min="0" value="${sale.payment}" placeholder="0" oninput="calculateNewPayment(${sale.total})">
-      </div>
-      <div id="paymentResultUpdate"></div>
-      <button class="submit" onclick="savePaymentUpdate('${sale.id}', ${sale.total})" style="margin-top:10px">Perbarui Pembayaran</button>
-    `);
-    calculateNewPayment(sale.total);
-  };
-
-  window.calculateNewPayment = function(total) {
-    let payment = Number(document.getElementById("newPayment")?.value) || 0,
-        result = document.getElementById("paymentResultUpdate");
-    if(!result) return;
-    if(payment === total) result.innerHTML = `<div class="payment-result payment-lunas"><b>🟢 LUNAS</b><br>Pembayaran sesuai total tagihan.</div>`;
-    else if(payment < total) result.innerHTML = `<div class="payment-result payment-kurang"><b>🟠 KEKURANGAN</b><br>Kurang: <strong>${formatRupiah(total - payment)}</strong></div>`;
-    else result.innerHTML = `<div class="payment-result payment-kembali"><b>🔵 KEMBALIAN</b><br>Kembali: <strong>${formatRupiah(payment - total)}</strong></div>`;
-  };
-
-  window.savePaymentUpdate = async function(id, total) {
-    let payment = Number(document.getElementById("newPayment").value) || 0;
-    let status = payment === total ? "Lunas" : payment < total ? "Kekurangan" : "Kembalian";
-    let difference = Math.abs(total - payment);
-
-    try {
-      await update(ref(db, "sales/" + id), { payment, status, difference });
-      closeModal();
-    } catch(e) {
-      alert("Gagal memperbarui pembayaran: " + e.message);
-    }
-  };
-
-  window.exportReceiptPNG = function(id) {
-    let sale = sales.find(s => s.id === id);
-    if(!sale) return;
-
-    let container = document.getElementById("receipt-container");
-    container.style.display = "block";
-
-    let itemsHtml = (sale.items || []).map(item => `
-      <tr>
-        <td colspan="3">${escapeHTML(item.name)}</td>
-      </tr>
-      <tr>
-        <td style="color:#555">${item.qty} x ${formatRupiah(item.price)}</td>
-        <td></td>
-        <td class="num">${formatRupiah(item.total)}</td>
-      </tr>
-    `).join("");
-
-    let paymentText = sale.status === "Kekurangan" ? "Sisa Tagihan" : "Kembalian";
-
-    container.innerHTML = `
-      <div class="receipt-wrapper" id="receipt-card">
-        <div class="receipt-header">
-          <h3>WORK NOTES STORE</h3>
-          <p>Nota Transaksi Penjualan</p>
-        </div>
-        <div class="receipt-info">
-          <div>No.   : <b>${sale.number}</b></div>
-          <div>Tgl   : ${sale.date}</div>
-          <div>Nama  : ${escapeHTML(sale.customer)}</div>
-          ${sale.phone ? `<div>HP    : ${escapeHTML(sale.phone)}</div>` : ''}
-        </div>
-        <table class="receipt-table">
-          ${itemsHtml}
-        </table>
-        <div class="receipt-divider"></div>
-        <div class="receipt-summary">
-          <div class="receipt-summary-line"><span>TOTAL</span> <b>${formatRupiah(sale.total)}</b></div>
-          <div class="receipt-summary-line"><span>DIBAYAR</span> <span>${formatRupiah(sale.payment)}</span></div>
-          <div class="receipt-summary-line"><span>${paymentText}</span> <span>${formatRupiah(sale.difference)}</span></div>
-          <div class="receipt-summary-line"><span>STATUS</span> <b>${sale.status.toUpperCase()}</b></div>
-        </div>
-        <div class="receipt-footer">
-          <p>Terima kasih atas kunjungan Anda!</p>
-          <small>${sale.createdAt || ''}</small>
-        </div>
-      </div>
-    `;
-
-    html2canvas(document.getElementById("receipt-card")).then(canvas => {
-      let link = document.createElement('a');
-      link.download = `Struk_${sale.number}_${sale.customer}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      container.style.display = "none";
-    }).catch(err => {
-      alert("Gagal mengekspor struk: " + err.message);
-      container.style.display = "none";
-    });
-  };
-
-  // --- FORM TRANSAKSI ---
-  window.openSaleModal = function() {
-    itemCounter = 0;
-    openModal("Tambah Penjualan", `
-      <div class="form-group"><label>Nama Pelanggan</label><input id="customer" placeholder="Contoh: Budi"></div>
-      <div class="form-group"><label>No. HP / Kontak (opsional)</label><input id="phone" placeholder="08xxxxxxxxxx"></div>
-      <div class="form-group"><label>Tanggal Transaksi</label><input id="saleDate" type="date" value="${todayISO()}"></div>
-      <div class="items-header"><div class="items-title">Daftar Barang</div><button class="add-item" onclick="addItem()">+ Barang</button></div>
-      <div id="items"></div>
-      <div class="total-box"><div class="total-line"><span>Total Barang</span><b id="itemCount">0</b></div><div class="total-line grand-total"><span>Total Tagihan</span><span id="grandTotal">Rp0</span></div></div>
-      <div class="form-group"><label>Jumlah Pembayaran</label><input id="payment" type="number" min="0" placeholder="0" oninput="calculatePayment()"></div>
-      <div id="paymentResult"></div>
-      <div class="form-group"><label>Jatuh Tempo</label><input id="dueDate" type="date"><small style="display:block;color:var(--md-sys-color-on-surface-variant);margin-top:4px">Isi jika ada pembayaran yang belum lunas.</small></div>
-      <div class="form-group"><label>Keterangan</label><textarea id="description" placeholder="Catatan tambahan..."></textarea></div>
-      <div class="form-group"><label>Status Pekerjaan (opsional)</label><select id="saleJobStatus">
-        <option value="">Tidak membuat pekerjaan</option>
-        <option>Menunggu</option><option>Diproses</option><option>Selesai</option><option>Diambil</option>
-      </select></div>
-      <button class="submit" onclick="saveSale()">Simpan Transaksi (Cloud)</button>
-    `);
-    addItem();
-  };
-
-  window.addItem = function() {
-    itemCounter++; let id = itemCounter;
-    document.getElementById("items").insertAdjacentHTML("beforeend", `
-      <div class="item-row" id="item-${id}">
-        <div class="item-grid">
-          <div class="item-field full">
-            <label>Nama Barang</label>
-            <input class="item-name" placeholder="Contoh: Banner 3x1m">
-          </div>
-          <div class="item-field">
-            <label>Harga Satuan</label>
-            <input class="item-price" type="number" min="0" placeholder="50000" oninput="calculateTotal()">
-          </div>
-          <div class="item-field">
-            <label>Jumlah</label>
-            <input class="item-qty" type="number" min="1" value="1" oninput="calculateTotal()">
-          </div>
-        </div>
-        <div class="item-total">
-          <span>Subtotal: <b class="row-total">Rp0</b></span>
-          <button class="remove-item" onclick="removeItem(${id})">Hapus</button>
-        </div>
-      </div>
-    `);
-    calculateTotal();
-  };
-
-  window.removeItem = function(id) {
-    let e = document.getElementById("item-" + id);
-    if(e) e.remove();
-    calculateTotal();
-  };
-
-  window.calculateTotal = function() {
-    let total = 0, rows = document.querySelectorAll(".item-row");
-    rows.forEach(row => {
-      let price = Number(row.querySelector(".item-price").value) || 0,
-          qty = Number(row.querySelector(".item-qty").value) || 0,
-          t = price * qty;
-      row.querySelector(".row-total").textContent = formatRupiah(t);
-      total += t;
-    });
-    document.getElementById("itemCount").textContent = rows.length;
-    document.getElementById("grandTotal").textContent = formatRupiah(total);
-    calculatePayment();
-  };
-
-  function getGrandTotal() {
-    let total = 0;
-    document.querySelectorAll(".item-row").forEach(row => {
-      total += (Number(row.querySelector(".item-price").value) || 0) * (Number(row.querySelector(".item-qty").value) || 0);
-    });
-    return total;
-  }
-
-  window.calculatePayment = function() {
-    let total = getGrandTotal(),
-        payment = Number(document.getElementById("payment")?.value) || 0,
-        result = document.getElementById("paymentResult");
-    if(!result) return;
-    if(payment === total) result.innerHTML = `<div class="payment-result payment-lunas"><b>🟢 LUNAS</b><br>Pembayaran sesuai dengan total tagihan.</div>`;
-    else if(payment < total) result.innerHTML = `<div class="payment-result payment-kurang"><b>🟠 KEKURANGAN</b><br>Masih kurang: <strong>${formatRupiah(total - payment)}</strong></div>`;
-    else result.innerHTML = `<div class="payment-result payment-kembali"><b>🔵 KEMBALIAN</b><br>Kembalian: <strong>${formatRupiah(payment - total)}</strong></div>`;
-  };
-
-  window.saveSale = async function() {
-    let customer = document.getElementById("customer").value.trim(),
-        phone = document.getElementById("phone").value.trim(),
-        date = document.getElementById("saleDate").value,
-        payment = Number(document.getElementById("payment").value) || 0,
-        dueDate = document.getElementById("dueDate").value,
-        description = document.getElementById("description").value.trim(),
-        jobStatus = document.getElementById("saleJobStatus")?.value || "",
-        rows = document.querySelectorAll(".item-row");
-
-    if(!customer) return alert("Nama pelanggan harus diisi.");
-    let items = [];
-    rows.forEach(row => {
-      let name = row.querySelector(".item-name").value.trim(),
-          price = Number(row.querySelector(".item-price").value) || 0,
-          qty = Number(row.querySelector(".item-qty").value) || 0;
-      if(name && price && qty) items.push({name, price, qty, total: price * qty});
-    });
-    if(!items.length) return alert("Minimal satu barang harus diisi.");
-
-    let total = items.reduce((s, i) => s + i.total, 0),
-        status = payment === total ? "Lunas" : payment < total ? "Kekurangan" : "Kembalian",
-        difference = Math.abs(total - payment);
-
-    try {
-      await push(salesRef, {
-        number: "TRX-" + Date.now().toString().slice(-6),
-        customer, phone, date, items, total, payment, status, difference, dueDate, description,
-        createdAt: new Date().toLocaleString("id-ID"),
-        timestamp: Date.now()
-      });
-
-      const existingCustomer = customers.find(c => c.name === customer || (phone && c.phone === phone));
-      if(existingCustomer) {
-        await update(ref(db, "customers/" + existingCustomer.id), {name:customer, phone, updatedAt:Date.now()});
-      } else {
-        await push(customersRef, {name:customer, phone, address:"", createdAt:Date.now(), updatedAt:Date.now()});
-      }
-
-      if(jobStatus) {
-        const jobName = items.map(i => `${i.name} (${i.qty}x)`).join(", ");
-        await push(jobsRef, {
-          number:"JOB-"+Date.now().toString().slice(-6),
-          customer, title:jobName, description, status:jobStatus,
-          dueDate, price:total, saleNumber:"TRX-"+Date.now().toString().slice(-6),
-          createdAt:Date.now(), updatedAt:Date.now()
-        });
-      }
-      closeModal();
-    } catch (e) {
-      alert("Gagal menyimpan ke Realtime Database: " + e.message);
-    }
-  };
-
-  window.deleteSale = async function(id) {
-    if(!confirm("Hapus transaksi ini dari Cloud?")) return;
-    try {
-      await remove(ref(db, "sales/" + id));
-    } catch(e) {
-      alert("Gagal menghapus: " + e.message);
-    }
-  };
-
-  window.openFileModal = function() {
-    openModal("Tambah File", `
-      <div class="form-group"><label>Nama File</label><input id="fileName" placeholder="contoh.pdf"></div>
-      <div class="form-group"><label>Kategori</label><select id="fileCategory"><option>Desain</option><option>Pelanggan</option><option>Invoice</option><option>Dokumen</option><option>Lainnya</option></select></div>
-      <button class="submit" onclick="saveFile()">Simpan File (Cloud)</button>
-    `);
-  };
-
-  window.saveFile = async function() {
-    let name = document.getElementById("fileName").value.trim(),
-        category = document.getElementById("fileCategory").value;
-    if(!name) return alert("Nama file harus diisi.");
-
-    try {
-      await push(filesRef, {
-        name, category,
-        date: new Date().toLocaleString("id-ID"),
-        timestamp: Date.now()
-      });
-      closeModal();
-    } catch(e) {
-      alert("Gagal menyimpan file: " + e.message);
-    }
-  };
-
-  function renderSales(data = sales) {
-    let list = document.getElementById("salesList");
-    if(!data.length){ list.innerHTML = `<div class="empty">Belum ada transaksi.</div>`; return; }
-    list.innerHTML = data.map(sale => {
-      let cls = sale.status === "Lunas" ? "lunas" : sale.status === "Kekurangan" ? "kurang" : "kembali";
-      let summary = sale.items ? sale.items.map(x => `${escapeHTML(x.name)} (${x.qty}×)`).join(", ") : "";
-      let paymentText = sale.status === "Kekurangan" ? `Kurang ${formatRupiah(sale.difference)}` : sale.status === "Kembalian" ? `Kembalian ${formatRupiah(sale.difference)}` : "Pembayaran sesuai";
-      return `
-        <div class="sale-card">
-          <div class="sale-top">
-            <div>
-              <div class="sale-customer">${escapeHTML(sale.customer)}</div>
-              <div class="sale-number">${sale.number} · ${sale.date}</div>
+<div class="app" id="main-app-container">
+    <div class="sidebar">
+        <div class="icon active" data-tab-target="panel-kasir" title="Kasir">🛒</div>
+        <div class="icon" data-tab-target="panel-notes" title="Catatan Teks & ToDo">📝</div>
+        <div class="icon" data-tab-target="panel-konverter" title="Konverter PDF & Gambar">🔄</div>
+    </div>
+    
+    <div class="main">
+        <header>
+            <span>Delta Workspace V4</span>
+            <span class="app-mode-title" id="app-current-mode">Mode: Kasir Cloud (Online)</span>
+        </header>
+        
+        <div class="tab-panel active" id="panel-kasir">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                    <h2>Kasir Cloud</h2>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label for="select-user" style="font-size: 13px; font-weight: bold; color: #475569;">Kasir:</label>
+                        <select id="select-user" style="padding: 6px 12px; font-weight: 600; color: #1e293b; background: #f1f5f9; border-color: #cbd5e1;">
+                            <option value="Dias">Dias</option>
+                            <option value="Novi">Novi</option>
+                            <option value="Rosita">Rosita</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-secondary" id="btn-tambah-baris" style="margin-top: 10px;">+ Tambah Baris Barang</button>
+                
+                <div id="daftar-barang">
+                    <div class="row-item">
+                        <input type="number" class="qty" value="1" min="1" placeholder="Qty">
+                        <input type="text" class="nama" placeholder="Nama Barang">
+                        <input type="text" class="harga" placeholder="Harga (Rp)">
+                        <div class="txt-subtotal-item">Rp0</div>
+                    </div>
+                </div>
+                
+                <div class="summary">
+                    <div><span><b>Total:</b></span> <span id="txt-total">Rp0</span></div>
+                    <div><span><b>Bayar:</b></span> <input type="text" id="input-bayar" value="0" style="width: 150px; text-align: right;"></div>
+                    <div><span><b id="lbl-kembalian">Kembalian:</b></span> <span id="txt-kembalian">Rp0</span></div>
+                </div>
+                <button id="btn-simpan">💾 Simpan Transaksi Ke Cloud</button>
             </div>
-            <div class="sale-total">${formatRupiah(sale.total)}</div>
-          </div>
-          <div class="sale-info">${summary}</div>
-          <span class="status ${cls}">${sale.status}</span>
-          <div class="sale-info">Dibayar: <b>${formatRupiah(sale.payment)}</b> · ${paymentText}</div>
-          ${sale.dueDate?`<div class="sale-info">📅 Jatuh tempo: <b>${formatDate(sale.dueDate)}</b></div>`:""}
-          ${sale.description?`<div class="sale-info">📝 ${escapeHTML(sale.description)}</div>`:""}
-          <div class="action-row">
-            <button class="btn-sm btn-update" onclick="openUpdatePaymentModal('${sale.id}')"><svg class="icon-svg" style="width:14px;height:14px;"><use href="#icon-debt-collection-round"/></svg> Update Bayar</button>
-            <button class="btn-sm btn-export" onclick="exportReceiptPNG('${sale.id}')">🖼️ Struk PNG</button>
-            <button class="btn-sm btn-delete" onclick="deleteSale('${sale.id}')">Hapus</button>
-          </div>
+
+            <div class="card history">
+                <h2>Riwayat Transaksi Toko</h2>
+                <input type="text" id="cari-transaksi" placeholder="🔍 Cari transaksi atau nama kasir...">
+                
+                <div id="status-sync" style="font-size:12px; color:#ef4444; font-weight:600; margin-top:4px;">🔄 Menghubungkan ke server cloud...</div>
+                
+                <div id="list-riwayat" style="margin-top: 12px;"></div>
+
+                <details style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                    <summary><b>Backup & Manual Action</b></summary>
+                    <div class="export" style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+                        <a id="btn-export-hari-ini" style="font-weight: 600; color: #16a34a;">📤 Eksport Transaksi Hari Ini (.json)</a>
+                        <a id="btn-reset" style="color: #dc2626; margin-top: 10px;">Reset Semua Riwayat Cloud</a>
+                    </div>
+                </details>
+            </div>
         </div>
-      `;
-    }).join("");
-  }
 
-  function renderFiles(data = files) {
-    let list = document.getElementById("filesList");
-    if(!data.length){ list.innerHTML = `<div class="empty">Belum ada file.</div>`; return; }
-    list.innerHTML = data.map(file => `<div class="file"><div class="file-icon">📄</div><div class="file-info"><div class="file-name">${escapeHTML(file.name)}</div><div class="file-meta">${escapeHTML(file.category)} · ${file.date}</div></div></div>`).join("");
-  }
+        <div class="tab-panel" id="panel-notes">
+            <div class="card">
+                <div style="border-bottom: 1px solid #eee; padding-bottom: 6px;">
+                    <h3>📝 Catatan Internal Toko</h3>
+                    <p style="font-size: 11px; color: #64748b;">Daftar memo ringkas / informasi operasional toko.</p>
+                </div>
+                <div class="input-group-note">
+                    <input type="text" id="input-catatan-teks" placeholder="Ketik catatan baru di sini...">
+                    <button id="btn-tambah-catatan" style="padding: 10px 16px;">+ Tambah</button>
+                </div>
+                <div class="list-wrapper" id="wrapper-catatan-list">
+                    </div>
+            </div>
 
-  window.searchSales = function(q) {
-    q = q.toLowerCase();
-    renderSales(sales.filter(s => (s.customer && s.customer.toLowerCase().includes(q)) || (s.items && s.items.some(i => i.name.toLowerCase().includes(q))) || (s.number && s.number.toLowerCase().includes(q))));
-  };
+            <div class="card">
+                <div style="border-bottom: 1px solid #eee; padding-bottom: 6px;">
+                    <h3>✅ Daftar Tugas Kasir (To-Do)</h3>
+                    <p style="font-size: 11px; color: #64748b;">Ceklist pekerjaan harian kasir yang harus diselesaikan.</p>
+                </div>
+                <div class="input-group-note">
+                    <input type="text" id="input-todo-teks" placeholder="Ketik tugas / checklist baru...">
+                    <button id="btn-tambah-todo" style="padding: 10px 16px; background: #10b981;">+ Tambah</button>
+                </div>
+                <div class="list-wrapper" id="wrapper-todo-list">
+                    </div>
+            </div>
+        </div>
 
-  window.searchNotes = function(q) {
-    q = q.toLowerCase();
-    renderNotes(notes.filter(n => (n.title && n.title.toLowerCase().includes(q)) || (n.content && n.content.toLowerCase().includes(q))));
-  };
+        <div class="tab-panel" id="panel-konverter">
+            <div class="converter-card">
+                <div class="converter-header">
+                    <h2>Konversi & Gabung PDF</h2>
+                    <p>Proses konverter lokal tetap bekerja 100% aman & privasi penuh</p>
+                </div>
 
-  window.searchFiles = function(q) {
-    q = q.toLowerCase();
-    renderFiles(files.filter(f => f.name && f.name.toLowerCase().includes(q)));
-  };
+                <div class="subtab-container">
+                    <button class="subtab-btn active" data-subtab="pdf2jpg">PDF ➜ JPG</button>
+                    <button class="subtab-btn" data-subtab="jpg2pdf">JPG ➜ PDF</button>
+                    <button class="subtab-btn" data-subtab="pdfmerger">🧩 PDF Merger</button>
+                </div>
 
-  function renderDashboard() {
-    let total = sales.reduce((s, x) => s + (x.total || 0), 0);
-    document.getElementById("dashboardSales").textContent = formatRupiah(total);
-    document.getElementById("dashboardTransactions").textContent = sales.length;
-    document.getElementById("dashboardNotes").textContent = notes.length;
-    document.getElementById("dashboardFiles").textContent = files.length;
-    document.getElementById("dashboardCustomers").textContent = customers.length;
-    document.getElementById("dashboardJobs").textContent = jobs.filter(j=>!["Diambil","Dibatalkan"].includes(j.status)).length;
-    document.getElementById("dashboardDebt").textContent = formatRupiah(sales.filter(s=>s.status==="Kekurangan").reduce((a,s)=>a+(Number(s.difference)||0),0));
-    document.getElementById("salesTotal").textContent = formatRupiah(total);
-    let recent = document.getElementById("recentSales");
-    if(!sales.length){ recent.innerHTML = `<div class="card"><div class="empty">Belum ada transaksi.</div></div>`; return; }
-    recent.innerHTML = sales.slice(0, 5).map(s => `<div class="sale-card"><div class="sale-top"><div><div class="sale-customer">${escapeHTML(s.customer)}</div><div class="sale-number">${s.number}</div></div><div class="sale-total">${formatRupiah(s.total)}</div></div><span class="status ${s.status==="Lunas"?"lunas":s.status==="Kekurangan"?"kurang":"kembali"}">${s.status}</span></div>`).join("");
-  }
+                <div class="subtab-content active" id="pdf2jpg">
+                    <div class="drop-area" id="dropAreaPdf">
+                        <input type="file" id="pdfFile" accept=".pdf" class="file-input">
+                        <div class="upload-icon">📄</div>
+                        <div class="drop-text">Seret file PDF ke sini atau klik pilih berkas</div>
+                    </div>
+                    <div class="file-info" id="fileInfoPdf">
+                        <div class="file-name-display"><span id="fileNamePdf"></span></div>
+                    </div>
+                    <div class="control-group">
+                        <label>Resolusi Kerapatan Gambar:</label>
+                        <input type="number" id="dpiInput" value="300" min="72" max="600" style="width:75px; text-align:center;">
+                    </div>
+                    <button id="convertPdfBtn" style="width: 100%;">Mulai Ekstrak ke JPG</button>
+                    <button id="downloadZipBtn" class="btn-primary btn-zip" style="width: 100%;">📦 Unduh ZIP</button>
+                    <div class="progress-container" id="progressBarPdf"><div class="progress-fill" id="progressFillPdf"></div></div>
+                    <div id="statusPdf" class="status-box status-info">Menunggu PDF...</div>
+                    <div class="download-section" id="resultAreaPdf"><ul class="download-list" id="downloadListPdf"></ul></div>
+                </div>
 
-  window.openCurrentModal = function() {
-    if(currentPage === "sales") openSaleModal();
-    else if(currentPage === "notes") openNoteModal();
-    else if(currentPage === "files") openFileModal();
-    else if(currentPage === "customers") openCustomerModal();
-    else if(currentPage === "jobs") openJobModal();
-    else if(currentPage === "debts") openSaleModal();
-    else openSaleModal();
-  };
+                <div class="subtab-content" id="jpg2pdf">
+                    <div class="drop-area" id="dropAreaJpg">
+                        <input type="file" id="jpgFile" accept="image/jpeg, image/png" multiple class="file-input">
+                        <div class="upload-icon">🖼️</div>
+                        <div class="drop-text">Seret GAMBAR ke sini atau klik pilih berkas</div>
+                    </div>
+                    <div class="file-info" id="fileInfoJpg"><div class="file-name-display"><span id="fileNameJpg"></span></div></div>
+                    
+                    <!-- DAFTAR URUTAN GAMBAR -->
+                    <ul class="selected-files-list" id="selectedJpgFilesList"></ul>
 
-  function formatRupiah(value) { return new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR", maximumFractionDigits: 0}).format(value || 0); }
-  function todayISO() { let d = new Date(), offset = d.getTimezoneOffset(), local = new Date(d.getTime() - offset * 60000); return local.toISOString().split("T")[0]; }
-  function formatDate(value) { return new Date(value + "T00:00:00").toLocaleDateString("id-ID", {day: "numeric", month: "long", year: "numeric"}); }
-  function escapeHTML(value) { return String(value || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+                    <div class="control-group">
+                        <label>Metode Output PDF:</label>
+                        <div class="option-buttons" id="modeJpgGroup">
+                            <div class="option-btn active" data-value="merge">Gabung Jadi 1 PDF</div>
+                            <div class="option-btn" data-value="split">Pisah File</div>
+                        </div>
+                    </div>
+                    <button id="convertJpgBtn" style="width: 100%; background: #10b981;">Proses ke PDF</button>
+                    <div id="statusJpg" class="status-box status-info">Menunggu gambar...</div>
+                    <div class="download-section" id="resultAreaJpg"><ul class="download-list" id="downloadListJpg"></ul></div>
+                </div>
 
-  function renderAll() {
-    renderDashboard();
-    renderSales();
-    renderNotes();
-    renderFiles();
-    renderCustomers();
-    renderJobs();
-    renderDebts();
-  }
+                <div class="subtab-content" id="pdfmerger">
+                    <div class="drop-area" id="dropAreaMerge">
+                        <input type="file" id="mergeFiles" accept=".pdf" multiple class="file-input">
+                        <div class="upload-icon">📂</div>
+                        <div class="drop-text">Seret beberapa file PDF ke sini</div>
+                    </div>
+                    <ul class="selected-files-list" id="selectedMergeFilesList"></ul>
+                    <button id="mergePdfBtn" style="width: 100%; background: #ec4899;">🧩 Gabungkan PDF</button>
+                    <div id="statusMerge" class="status-box status-info">Menunggu berkas...</div>
+                    <div class="download-section" id="resultAreaMerge"><ul class="download-list" id="downloadListMerge"></ul></div>
+                </div>
+            </div>
+        </div>
+        <footer>Delta Workspace V4 Cloud Server Powered UI</footer>
+    </div>
+</div>
 
-  document.getElementById("today").textContent = new Date().toLocaleDateString("id-ID", {weekday: "long", day: "numeric", month: "long", year: "numeric"});
+<div id="invoice-template">
+    <div class="inv-header">DELTA COMPUTER - PRINTING<br><span style="font-size: 11px; font-weight: normal;">Nota Pembelian Resmi</span></div>
+    <div class="inv-meta">ID: <span id="inv-id"></span><br>Kasir: <span id="inv-user" style="font-weight: bold;"></span><br>Tgl: <span id="inv-tgl"></span></div>
+    <table class="inv-table" id="inv-items"><thead><tr><th>Item</th><th>Detail</th><th style="text-align: right;">Total</th></tr></thead><tbody></tbody></table>
+    <div class="inv-summary">
+        <div>Total: <span id="inv-total"></span></div>
+        <div>Bayar: <span id="inv-bayar"></span></div>
+        <div style="font-weight: bold;" id="inv-lbl-kembali-box"><span id="inv-lbl-kembali">Kembali:</span> <span id="inv-kembali"></span></div>
+    </div>
+    <div class="inv-footer">Terima Kasih Atas Kunjungan Anda<br>Delta Computer & Printing</div>
+</div>
+
+<div class="modal-preview" id="modalPreview">
+    <div class="modal-content">
+        <span class="modal-close" id="closeModal">&times;</span>
+        <h3 style="margin-bottom: 12px; font-size: 16px;">📄 Pratinjau Nota</h3>
+        <div class="modal-body-invoice" id="modalInvoiceBody"></div>
+    </div>
+</div>
+
+<script>
+/* ========================================================
+   SISTEM OTENTIKASI PASSWORD (LOKAL)
+   ======================================================== */
+const encryptedKey = "ZGVsdGEyMDI2"; 
+
+const authWall = document.getElementById('auth-wall');
+const mainAppContainer = document.getElementById('main-app-container');
+const inputPasskey = document.getElementById('app-passkey');
+const btnLogin = document.getElementById('btn-login');
+const loginErr = document.getElementById('login-err');
+
+function verifyAccess() {
+    const userInput = inputPasskey.value;
+    if (userInput === atob(encryptedKey)) {
+        authWall.style.display = 'none';
+        mainAppContainer.style.display = 'flex';
+        initFirebase();
+    } else {
+        loginErr.style.display = 'block';
+        inputPasskey.value = '';
+        inputPasskey.focus();
+    }
+}
+
+btnLogin.addEventListener('click', verifyAccess);
+inputPasskey.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyAccess(); });
+
+
+/* INSIALISASI INTEGRASI FIREBASE */
+let db, riwayatRef, notesListRef, todoListRef;
+
+function initFirebase() {
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnygBy3w5Ue9cOKRxuuKqCDGVt2jt8waM",
+      authDomain: "deltatools-96d22.firebaseapp.com",
+      databaseURL: "https://deltatools-96d22-default-rtdb.europe-west1.firebasedatabase.app/",
+      projectId: "deltatools-96d22",
+      storageBucket: "deltatools-96d22.firebasestorage.app",
+      messagingSenderId: "394544545294",
+      appId: "1:394544545294:web:9c44fc3cecbdd14a76465f"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    riwayatRef = db.ref('riwayat_kasir');
+    notesListRef = db.ref('catatan_toko_list');
+    todoListRef = db.ref('todo_toko_list');
+
+    attachFirebaseListeners();
+}
+
+/* NAVIGATION SYSTEM */
+const sidebarIcons = document.querySelectorAll('.sidebar .icon');
+const tabPanels = document.querySelectorAll('.tab-panel');
+const appCurrentMode = document.getElementById('app-current-mode');
+
+sidebarIcons.forEach(icon => {
+    icon.addEventListener('click', () => {
+        const target = icon.getAttribute('data-tab-target');
+        if (!target) return;
+        sidebarIcons.forEach(i => i.classList.remove('active'));
+        tabPanels.forEach(p => p.classList.remove('active'));
+        icon.classList.add('active');
+        document.getElementById(target).classList.add('active');
+        if(target === 'panel-kasir') appCurrentMode.innerText = "Mode: Kasir Cloud (Online)";
+        if(target === 'panel-notes') appCurrentMode.innerText = "Mode: Catatan Teks & ToDo Cloud";
+        if(target === 'panel-konverter') appCurrentMode.innerText = "Mode: Alat Konverter Media";
+    });
+});
+
+/* SCRIPT UTAMA KASIR CLOUD REALTIME */
+const selectUser = document.getElementById('select-user');
+const daftarBarangContainer = document.getElementById('daftar-barang');
+const btnTambahBaris = document.getElementById('btn-tambah-baris');
+const txtTotal = document.getElementById('txt-total');
+const inputBayar = document.getElementById('input-bayar');
+const txtKembalian = document.getElementById('txt-kembalian');
+const lblKembalian = document.getElementById('lbl-kembalian');
+const btnSimpan = document.getElementById('btn-simpan');
+const listRiwayat = document.getElementById('list-riwayat');
+const cariTransaksi = document.getElementById('cari-transaksi');
+const btnReset = document.getElementById('btn-reset');
+const btnExportHariIni = document.getElementById('btn-export-hari-ini');
+const statusSync = document.getElementById('status-sync');
+
+let totalBelanja = 0;
+let dataRiwayat = []; 
+
+function dapatkanTanggalHariIni() {
+    const tgl = new Date();
+    return `${tgl.getDate()} ${tgl.toLocaleString('id-ID', { month: 'long' })} ${tgl.getFullYear()}`;
+}
+function formatRupiah(angka) { return 'Rp' + parseInt(angka).toLocaleString('id-ID'); }
+
+// Fungsi pembagi perseribu otomatis untuk format teks angka
+function formatInputRibuan(nilai) {
+    let angkaMurni = nilai.replace(/[^0-9]/g, '');
+    if (angkaMurni === '') return '0';
+    return parseInt(angkaMurni, 10).toLocaleString('id-ID');
+}
+
+btnTambahBaris.addEventListener('click', () => {
+    const row = document.createElement('div');
+    row.className = 'row-item'; row.style.marginTop = '8px';
+    row.innerHTML = `
+        <input type="number" class="qty" value="1" min="1" placeholder="Qty">
+        <input type="text" class="nama" placeholder="Nama Barang">
+        <input type="text" class="harga" placeholder="Harga (Rp)">
+        <div class="txt-subtotal-item">Rp0</div>
+    `;
+    daftarBarangContainer.appendChild(row);
+    rekamEventInput();
+});
+
+function hitungTotal() {
+    totalBelanja = 0;
+    daftarBarangContainer.querySelectorAll('.row-item').forEach(row => {
+        const qty = parseFloat(row.querySelector('.qty').value) || 0;
+        // Ambil nilai murni dengan membersihkan tanda titik format
+        const hargaRaw = row.querySelector('.harga').value.replace(/\./g, '') || '0';
+        const harga = parseFloat(hargaRaw) || 0;
+        const subtotalBaris = qty * harga;
+        
+        // Update tampilan subtotal per baris secara real-time
+        row.querySelector('.txt-subtotal-item').innerText = formatRupiah(subtotalBaris);
+        
+        totalBelanja += subtotalBaris;
+    });
+    txtTotal.innerText = formatRupiah(totalBelanja);
+    hitungKembalian();
+}
+
+function hitungKembalian() {
+    const nilaiInput = inputBayar.value.replace(/\./g, '') || '0';
+    const bayar = parseFloat(nilaiInput) || 0;
+    const selisih = bayar - totalBelanja;
+
+    if (selisih < 0) {
+        lblKembalian.innerText = 'Kekurangan:';
+        txtKembalian.innerText = formatRupiah(Math.abs(selisih));
+        txtKembalian.style.color = '#ef4444';
+        txtKembalian.style.fontWeight = 'bold';
+    } else {
+        lblKembalian.innerText = 'Kembalian:';
+        txtKembalian.innerText = formatRupiah(selisih);
+        txtKembalian.style.color = '';
+        txtKembalian.style.fontWeight = '';
+    }
+}
+
+function rekamEventInput() {
+    daftarBarangContainer.querySelectorAll('.qty').forEach(input => {
+        input.removeEventListener('input', hitungTotal); input.addEventListener('input', hitungTotal);
+    });
+    
+    // Pasang format ribuan otomatis real-time ke semua inputan harga barang
+    daftarBarangContainer.querySelectorAll('.harga').forEach(input => {
+        input.removeEventListener('input', formatDanHitungHarga);
+        input.addEventListener('input', formatDanHitungHarga);
+    });
+}
+
+function formatDanHitungHarga() {
+    this.value = formatInputRibuan(this.value);
+    hitungTotal();
+}
+
+// Event listener input pembayaran
+inputBayar.addEventListener('input', function() {
+    this.value = formatInputRibuan(this.value);
+    hitungKembalian();
+});
+
+function attachFirebaseListeners() {
+    riwayatRef.on('value', (snapshot) => {
+        const cloudData = snapshot.val();
+        dataRiwayat = [];
+        if (cloudData) {
+            Object.keys(cloudData).forEach(key => {
+                dataRiwayat.push({ firebaseKey: key, ...cloudData[key] });
+            });
+            dataRiwayat.sort((a, b) => b.id - a.id);
+        }
+        statusSync.innerText = "✅ Cloud Tersinkronisasi (Real-time)";
+        statusSync.style.color = "#059669";
+        tampilkanRiwayat(cariTransaksi.value);
+    });
+
+    notesListRef.on('value', (snapshot) => {
+        wrapperCatatanList.innerHTML = '';
+        const data = snapshot.val();
+        if(!data) {
+            wrapperCatatanList.innerHTML = '<p style="color:#888; font-size:13px; text-align:center; padding:20px 0;">Belum ada catatan.</p>';
+            return;
+        }
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            const div = document.createElement('div');
+            div.className = 'note-item';
+            div.innerHTML = `
+                <div style="flex:1;">
+                    <div class="content-text">${item.teks}</div>
+                    <span class="timestamp">📅 ${item.waktu}</span>
+                </div>
+                <button class="btn-del-note" onclick="hapusCatatanItem('${key}')" title="Hapus">🗑️</button>
+            `;
+            wrapperCatatanList.appendChild(div);
+        });
+    });
+
+    todoListRef.on('value', (snapshot) => {
+        wrapperTodoList.innerHTML = '';
+        const data = snapshot.val();
+        if(!data) {
+            wrapperTodoList.innerHTML = '<p style="color:#888; font-size:13px; text-align:center; padding:20px 0;">Tidak ada tugas hari ini.</p>';
+            return;
+        }
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            const div = document.createElement('div');
+            div.className = `todo-item ${item.selesai ? 'done' : ''}`;
+            div.innerHTML = `
+                <div class="todo-left">
+                    <input type="checkbox" class="todo-checkbox" ${item.selesai ? 'checked' : ''} onclick="toggleStatusTodo('${key}', ${item.selesai})">
+                    <div class="todo-text-wrapper">
+                        <div class="todo-text">${item.teks}</div>
+                        <span class="timestamp" style="color: #a1a1aa;">📅 ${item.waktu}</span>
+                    </div>
+                </div>
+                <button class="btn-del-note" onclick="hapusTodoItem('${key}')" title="Hapus">🗑️</button>
+            `;
+            wrapperTodoList.appendChild(div);
+        });
+    });
+}
+
+btnSimpan.addEventListener('click', () => {
+    if (totalBelanja <= 0) return alert('Total belanja masih Rp0.');
+    const bayar = parseFloat(inputBayar.value.replace(/\./g, '')) || 0;
+    const statusTransaksi = bayar < totalBelanja ? 'KURANG' : 'LUNAS';
+
+    const items = [];
+    daftarBarangContainer.querySelectorAll('.row-item').forEach(row => {
+        const qty = parseFloat(row.querySelector('.qty').value) || 0;
+        const nama = row.querySelector('.nama').value || 'Barang Umum';
+        const hargaRaw = row.querySelector('.harga').value.replace(/\./g, '') || '0';
+        const harga = parseFloat(hargaRaw) || 0;
+        if(qty > 0 && harga > 0) items.push({ nama, qty, harga, totalItem: qty * harga });
+    });
+
+    const transaksiBaru = {
+        id: Date.now(),
+        user: selectUser.value,
+        tanggal: dapatkanTanggalHariIni(),
+        total: totalBelanja,
+        bayar: bayar,
+        kembalian: bayar - totalBelanja,
+        status: statusTransaksi,
+        items: items
+    };
+
+    riwayatRef.push(transaksiBaru).then(() => {
+        daftarBarangContainer.innerHTML = `
+            <div class="row-item">
+                <input type="number" class="qty" value="1" min="1" placeholder="Qty">
+                <input type="text" class="nama" placeholder="Nama Barang">
+                <input type="text" class="harga" placeholder="Harga (Rp)">
+                <div class="txt-subtotal-item">Rp0</div>
+            </div>
+        `;
+        inputBayar.value = '0'; 
+        hitungTotal(); rekamEventInput();
+    }).catch(err => alert("Gagal menyimpan: " + err));
+});
+
+function tampilkanRiwayat(filter = '') {
+    listRiwayat.innerHTML = '';
+    const filteredData = dataRiwayat.filter(item => 
+        item.tanggal.toLowerCase().includes(filter.toLowerCase()) || 
+        item.total.toString().includes(filter) ||
+        (item.user && item.user.toLowerCase().includes(filter.toLowerCase()))
+    );
+    if(filteredData.length === 0) {
+        listRiwayat.innerHTML = '<p style="color:#888; font-size:14px;">Tidak ada riwayat transaksi cloud.</p>';
+        return;
+    }
+    filteredData.forEach(item => {
+        const userDisplay = item.user ? item.user : 'Umum';
+        const statusColor = item.status === 'KURANG' ? '#ef4444' : 'green';
+        const div = document.createElement('div'); div.className = 'item';
+        div.innerHTML = `
+            <b>${item.tanggal}</b> <span style="font-size:11px; background:#e2e8f0; padding:2px 6px; border-radius:4px; margin-left:5px;">👤 ${userDisplay}</span><span class="menu">⋮</span><br>
+            ${formatRupiah(item.total)} - <span style="color:${statusColor}; font-weight:bold;">${item.status}</span>
+            <details>
+                <summary>Aksi Dokumen</summary>
+                <div class="export" style="margin-top: 6px;">
+                    <a onclick="pratinjauNota(${item.id})">📄 Pratinjau Nota</a>
+                    <a onclick="eksportTXT(${item.id})">📥 Cetak TXT</a>
+                    <a onclick="eksportPNG(${item.id})">💾 Cetak PNG</a>
+                    <a onclick="hapusCloud('${item.firebaseKey}')" style="color: #dc2626; margin-top:4px;">❌ Hapus Dari Cloud</a>
+                </div>
+            </details>
+        `;
+        listRiwayat.appendChild(div);
+    });
+}
+
+window.pratinjauNota = function(id) {
+    const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
+    const userDisplay = tx.user ? tx.user : 'Umum';
+    let itemRows = '';
+    tx.items.forEach(item => {
+        itemRows += `<tr>
+            <td style="padding: 4px 0;">${item.nama}</td>
+            <td style="padding: 4px 0; color: #555;">${item.qty} x ${parseFloat(item.harga || 0).toLocaleString('id-ID')}</td>
+            <td style="text-align: right; padding: 4px 0;">${formatRupiah(item.totalItem)}</td>
+        </tr>`;
+    });
+
+    const selisih = (tx.bayar || 0) - tx.total;
+    let labelKembali = 'Kembali:';
+    let nilaiKembali = tx.kembalian || 0;
+    let styleWarna = '';
+
+    if (selisih < 0) {
+        labelKembali = 'Kekurangan:';
+        nilaiKembali = Math.abs(selisih);
+        styleWarna = 'color: #ef4444;';
+    }
+
+    const htmlContent = `
+        <div style="font-family: 'Courier New', Courier, monospace; color: #000; font-size: 13px;">
+            <div style="text-align: center; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px;">DELTA COMPUTER - PRINTING<br><span style="font-size: 11px; font-weight: normal;">Nota Pembelian Resmi</span></div>
+            <div style="margin-bottom: 10px; font-size: 11px;">ID: ${tx.id}<br>Kasir: <b>${userDisplay}</b><br>Tgl: ${tx.tanggal}</div>
+            <table style="width: 100%; font-size: 11px; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; border-collapse: collapse;">
+                <thead><tr><th style="text-align: left; border-bottom: 1px dashed #000; padding-bottom: 4px;">Item</th><th style="text-align: left; border-bottom: 1px dashed #000; padding-bottom: 4px;">Detail</th><th style="text-align: right; border-bottom: 1px dashed #000; padding-bottom: 4px;">Total</th></tr></thead>
+                <tbody>${itemRows}</tbody>
+            </table>
+            <div style="text-align: right; font-size: 12px; display: flex; flex-direction: column; gap: 2px;">
+                <div>Total: ${formatRupiah(tx.total)}</div>
+                <div>Bayar: ${formatRupiah(tx.bayar || 0)}</div>
+                <div style="font-weight: bold; ${styleWarna}">${labelKembali} ${formatRupiah(nilaiKembali)}</div>
+            </div>
+            <div style="text-align: center; font-size: 10px; margin-top: 15px; border-top: 1px dashed #000; padding-top: 5px;">Terima Kasih Atas Kunjungan Anda<br>Delta Computer & Printing</div>
+        </div>
+    `;
+    document.getElementById('modalInvoiceBody').innerHTML = htmlContent;
+    document.getElementById('modalPreview').style.display = 'flex';
+}
+
+document.getElementById('closeModal').addEventListener('click', () => { document.getElementById('modalPreview').style.display = 'none'; });
+window.addEventListener('click', (e) => { const modal = document.getElementById('modalPreview'); if (e.target === modal) modal.style.display = 'none'; });
+
+window.eksportTXT = function(id) {
+    const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
+    const n = "\r\n"; const userDisplay = tx.user ? tx.user : 'Umum';
+    
+    const selisih = (tx.bayar || 0) - tx.total;
+    let labelKembali = 'KEMBALIAN     ';
+    let nilaiKembali = tx.kembalian || 0;
+    if (selisih < 0) {
+        labelKembali = 'KEKURANGAN    ';
+        nilaiKembali = Math.abs(selisih);
+    }
+
+    let txtContent = `==================================================` + n + `            DELTA COMPUTER - PRINTING             ` + n + `==================================================` + n;
+    txtContent += `ID Transaksi : ${tx.id}` + n + `Kasir        : ${userDisplay}` + n + `Tanggal      : ${tx.tanggal}` + n + `Status       : ${tx.status}` + n + `--------------------------------------------------` + n;
+    txtContent += `Nama Barang       Qty x Harga Satuan     Subtotal ` + n + `--------------------------------------------------` + n;
+    tx.items.forEach(item => { 
+        let detailStr = `${item.qty} x ${parseFloat(item.harga || 0).toLocaleString('id-ID')}`;
+        txtContent += `${item.nama.padEnd(17)} ${detailStr.padEnd(22)} Rp${item.totalItem.toLocaleString('id-ID')}` + n; 
+    });
+    txtContent += `--------------------------------------------------` + n + `TOTAL BELANJA : Rp${tx.total.toLocaleString('id-ID')}` + n;
+    txtContent += `BAYAR         : Rp${parseFloat(tx.bayar || 0).toLocaleString('id-ID')}` + n;
+    txtContent += `${labelKembali} : Rp${nilaiKembali.toLocaleString('id-ID')}` + n + n;
+    txtContent += `    Terima Kasih Atas Kunjungan Anda!   ` + n;
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Nota_Delta_${tx.id}.txt`; link.click();
+}
+
+window.eksportPNG = function(id) {
+    const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
+    document.getElementById('inv-id').innerText = tx.id;
+    document.getElementById('inv-user').innerText = tx.user ? tx.user : 'Umum';
+    document.getElementById('inv-tgl').innerText = tx.tanggal;
+    document.getElementById('inv-total').innerText = formatRupiah(tx.total);
+    document.getElementById('inv-bayar').innerText = formatRupiah(tx.bayar || 0);
+    
+    const selisih = (tx.bayar || 0) - tx.total;
+    const lblElement = document.getElementById('inv-lbl-kembali');
+    const txtElement = document.getElementById('inv-kembali');
+    const boxElement = document.getElementById('inv-lbl-kembali-box');
+
+    if (selisih < 0) {
+        lblElement.innerText = 'Kekurangan:';
+        txtElement.innerText = formatRupiah(Math.abs(selisih));
+        boxElement.style.color = '#ef4444';
+    } else {
+        lblElement.innerText = 'Kembali:';
+        txtElement.innerText = formatRupiah(selisih);
+        boxElement.style.color = '';
+    }
+
+    const tbody = document.querySelector('#inv-items tbody'); tbody.innerHTML = '';
+    tx.items.forEach(item => {
+        const tr = document.createElement('tr'); 
+        tr.innerHTML = `<td>${item.nama}</td><td>${item.qty} x ${parseFloat(item.harga || 0).toLocaleString('id-ID')}</td><td style="text-align: right;">${formatRupiah(item.totalItem)}</td>`; 
+        tbody.appendChild(tr);
+    });
+    const targetElement = document.getElementById('invoice-template'); targetElement.style.position = 'static';
+    html2canvas(targetElement, { scale: 2 }).then(canvas => {
+        targetElement.style.position = 'absolute'; targetElement.style.left = '-9999px'; targetElement.style.top = '-9999px';
+        const link = document.createElement('a'); link.download = `Nota_Delta_${tx.id}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+    });
+}
+
+window.hapusCloud = function(firebaseKey) {
+    if(confirm('Hapus transaksi ini dari cloud?')) db.ref('riwayat_kasir/' + firebaseKey).remove();
+}
+btnExportHariIni.addEventListener('click', (e) => {
+    e.preventDefault(); const dataHariIni = dataRiwayat.filter(item => item.tanggal === dapatkanTanggalHariIni());
+    if (dataHariIni.length === 0) return alert('Belum ada transaksi hari ini!');
+    const dataBlob = new Blob([JSON.stringify(dataHariIni, null, 2)], { type: 'application/json;charset=utf-8' });
+    const link = document.createElement('a'); link.href = URL.createObjectURL(dataBlob); link.download = `Backup_DeltaCloud.json`; link.click();
+});
+btnReset.addEventListener('click', (e) => { e.preventDefault(); if(confirm('Bersihkan database cloud?')) riwayatRef.remove(); });
+
+
+/* SCRIPT KHUSUS: MANAJEMEN CATATAN LIST & TO-DO CLOUD REALTIME */
+const inputCatatanTeks = document.getElementById('input-catatan-teks');
+const btnTambahCatatan = document.getElementById('btn-tambah-catatan');
+const wrapperCatatanList = document.getElementById('wrapper-catatan-list');
+
+const inputTodoTeks = document.getElementById('input-todo-teks');
+const btnTambahTodo = document.getElementById('btn-tambah-todo');
+const wrapperTodoList = document.getElementById('wrapper-todo-list');
+
+function dapatkanWaktuLengkap() {
+    const d = new Date();
+    const tglStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    const jamStr = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    return `${tglStr} - ${jamStr}`;
+}
+
+btnTambahCatatan.addEventListener('click', () => {
+    const teks = inputCatatanTeks.value.trim();
+    if(!teks) return;
+    
+    notesListRef.push({
+        teks: teks,
+        waktu: dapatkanWaktuLengkap()
+    }).then(() => { inputCatatanTeks.value = ''; });
+});
+
+window.hapusCatatanItem = function(key) { notesListRef.child(key).remove(); };
+
+btnTambahTodo.addEventListener('click', () => {
+    const teks = inputTodoTeks.value.trim();
+    if(!teks) return;
+
+    todoListRef.push({
+        teks: teks,
+        selesai: false,
+        waktu: dapatkanWaktuLengkap()
+    }).then(() => { inputTodoTeks.value = ''; });
+});
+
+window.toggleStatusTodo = function(key, statusSaatIni) { todoListRef.child(key).update({ selesai: !statusSaatIni }); };
+window.hapusTodoItem = function(key) { todoListRef.child(key).remove(); };
+
+
+/* LOGIKA SCRIPT ALAT KONVERTER */
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+const subtabButtons = document.querySelectorAll('.subtab-btn');
+const subtabContents = document.querySelectorAll('.subtab-content');
+subtabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        subtabButtons.forEach(b => b.classList.remove('active')); subtabContents.forEach(c => c.classList.remove('active'));
+        btn.classList.add('active'); document.getElementById(btn.dataset.subtab).classList.add('active');
+    });
+});
+
+function cekUkuranFile(file) {
+    const MAX_SIZE = 25 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+        alert(`⚠️ Ukuran file "${file.name}" terlalu besar! Maksimal ukuran file adalah 25 MB.`);
+        return false;
+    }
+    return true;
+}
+
+// PDF KE JPG
+const pdfFileInput = document.getElementById('pdfFile'); const dropAreaPdf = document.getElementById('dropAreaPdf');
+const fileInfoPdf = document.getElementById('fileInfoPdf'); const fileNamePdf = document.getElementById('fileNamePdf');
+const dpiInput = document.getElementById('dpiInput'); const convertPdfBtn = document.getElementById('convertPdfBtn');
+const downloadZipBtn = document.getElementById('downloadZipBtn'); const statusPdf = document.getElementById('statusPdf');
+const resultAreaPdf = document.getElementById('resultAreaPdf'); const downloadListPdf = document.getElementById('downloadListPdf');
+const progressBarPdf = document.getElementById('progressBarPdf'); const progressFillPdf = document.getElementById('progressFillPdf');
+let generatedImages = [];
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropAreaPdf.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }); });
+['dragenter', 'dragover'].forEach(e => dropAreaPdf.addEventListener(e, () => dropAreaPdf.classList.add('highlight')));
+['dragleave', 'drop'].forEach(e => dropAreaPdf.addEventListener(e, () => dropAreaPdf.classList.remove('highlight')));
+dropAreaPdf.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { pdfFileInput.files = e.dataTransfer.files; handleSelectPdf(); } });
+pdfFileInput.addEventListener('change', handleSelectPdf);
+
+function handleSelectPdf() {
+    const file = pdfFileInput.files[0];
+    if(file && cekUkuranFile(file)) {
+        fileNamePdf.textContent = file.name; fileInfoPdf.style.display = 'flex';
+        statusPdf.textContent = "Dokumen siap diproses!"; statusPdf.className = "status-box status-success";
+        resultAreaPdf.style.display = "none"; downloadZipBtn.style.display = "none"; generatedImages = [];
+    } else { pdfFileInput.value = ""; fileInfoPdf.style.display = 'none'; }
+}
+convertPdfBtn.addEventListener('click', async () => {
+    const file = pdfFileInput.files[0]; if(!file) return alert('Pilih berkas PDF terlebih dahulu!');
+    const dpi = parseInt(dpiInput.value) || 300;
+    convertPdfBtn.disabled = true; progressBarPdf.style.display = "block";
+    statusPdf.textContent = "Membaca dokumen..."; statusPdf.className = "status-box status-info";
+    generatedImages = []; downloadListPdf.innerHTML = "";
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const pdf = await pdfjsLib.getDocument({data: new Uint8Array(e.target.result)}).promise;
+            for(let i=1; i<=pdf.numPages; i++){
+                progressFillPdf.style.width = `${Math.round(((i-1)/pdf.numPages)*100)}%`;
+                statusPdf.textContent = `Mengekstrak Halaman ${i} dari ${pdf.numPages}...`;
+                const page = await pdf.getPage(i); const viewport = page.getViewport({scale: dpi/72});
+                const canvas = document.createElement('canvas'); canvas.width = viewport.width; canvas.height = viewport.height;
+                await page.render({canvasContext: canvas.getContext('2d'), viewport: viewport}).promise;
+                const imgUrl = canvas.toDataURL('image/jpeg', 0.92); generatedImages.push({name: `Halaman_${i}.jpg`, data: imgUrl});
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="${imgUrl}" download="Halaman_${i}.jpg" class="download-link"><span>📄 Halaman ${i} (${dpi} DPI)</span><span class="download-action">Unduh JPG</span></a>`;
+                downloadListPdf.appendChild(li);
+            }
+            statusPdf.textContent = `✅ Sukses mengekstrak ${pdf.numPages} halaman!`;
+            statusPdf.className = "status-box status-success"; resultAreaPdf.style.display = "block"; downloadZipBtn.style.display = "block";
+        } catch(err) { statusPdf.textContent = "Gagal memproses PDF."; statusPdf.className = "status-box status-error"; }
+        convertPdfBtn.disabled = false; progressBarPdf.style.display = "none";
+    }; reader.readAsArrayBuffer(file);
+});
+downloadZipBtn.addEventListener('click', async () => {
+    const zip = new JSZip(); generatedImages.forEach(img => { zip.file(img.name, b64toBlob(img.data.split(',')[1], 'image/jpeg')); });
+    const content = await zip.generateAsync({type:"blob"}); saveAs(content, `Ekstrak_PDF_Delta.zip`);
+});
+
+// JPG KE PDF
+const jpgFileInput = document.getElementById('jpgFile'); const dropAreaJpg = document.getElementById('dropAreaJpg');
+const fileInfoJpg = document.getElementById('fileInfoJpg'); const fileNameJpg = document.getElementById('fileNameJpg');
+const convertJpgBtn = document.getElementById('convertJpgBtn'); const statusJpg = document.getElementById('statusJpg');
+const resultAreaJpg = document.getElementById('resultAreaJpg'); const downloadListJpg = document.getElementById('downloadListJpg');
+const selectedJpgFilesList = document.getElementById('selectedJpgFilesList');
+
+let imageFiles = []; 
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropAreaJpg.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }); });
+dropAreaJpg.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { tambahkanFileJpg(e.dataTransfer.files); } });
+jpgFileInput.addEventListener('change', () => { if(jpgFileInput.files.length) { tambahkanFileJpg(jpgFileInput.files); } });
+
+function tambahkanFileJpg(files) {
+    const filesArray = Array.from(files);
+    const filesValid = filesArray.filter(file => cekUkuranFile(file));
+    
+    if (filesValid.length > 0) {
+        imageFiles = imageFiles.concat(filesValid);
+        perbaruiTampilanListJpg();
+    }
+    jpgFileInput.value = ""; 
+}
+
+function perbaruiTampilanListJpg() {
+    if(imageFiles.length > 0) {
+        fileNameJpg.textContent = `${imageFiles.length} Gambar Terpilih`; 
+        fileInfoJpg.style.display = 'flex';
+        selectedJpgFilesList.style.display = "block";
+        statusJpg.textContent = "Gambar siap dikonversi! Anda bisa menggeser urutan halaman di bawah."; 
+        statusJpg.className = "status-box status-success";
+        resultAreaJpg.style.display = "none";
+        
+        selectedJpgFilesList.innerHTML = "";
+        imageFiles.forEach((file, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span><span class="file-index">${index + 1}</span> ${file.name}</span>
+                <div class="list-action-btns">
+                    <button onclick="geserJpg(${index}, -1)" title="Naikkan Urutan">▲</button>
+                    <button onclick="geserJpg(${index}, 1)" title="Turunkan Urutan">▼</button>
+                    <button class="btn-list-del" onclick="hapusJpg(${index})" title="Hapus Gambar">✕</button>
+                </div>
+            `;
+            selectedJpgFilesList.appendChild(li);
+        });
+    } else {
+        imageFiles = [];
+        fileInfoJpg.style.display = 'none';
+        selectedJpgFilesList.style.display = "none";
+        statusJpg.textContent = "Menunggu gambar...";
+        statusJpg.className = "status-box status-info";
+    }
+}
+
+window.geserJpg = function(index, arah) {
+    const targetIndex = index + arah;
+    if (targetIndex < 0 || targetIndex >= imageFiles.length) return; 
+    
+    const temp = imageFiles[index];
+    imageFiles[index] = imageFiles[targetIndex];
+    imageFiles[targetIndex] = temp;
+    
+    perbaruiTampilanListJpg();
+};
+
+window.hapusJpg = function(index) {
+    imageFiles.splice(index, 1);
+    perbaruiTampilanListJpg();
+};
+
+convertJpgBtn.addEventListener('click', async () => {
+    if(imageFiles.length === 0) return alert('Pilih gambar dahulu!');
+    convertJpgBtn.disabled = true; downloadListJpg.innerHTML = ""; statusJpg.textContent = "Menyusun PDF sesuai urutan antrean...";
+    const mode = document.querySelector('#modeJpgGroup .option-btn.active').dataset.value;
+    if(mode === 'merge') {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        for(let i=0; i<imageFiles.length; i++) {
+            if(i > 0) doc.addPage();
+            const rawUrl = await membacaBerkasDataURL(imageFiles[i]);
+            await new Promise((res) => {
+                const img = new Image(); img.onload = () => {
+                    const pW = doc.internal.pageSize.getWidth(); const pH = doc.internal.pageSize.getHeight();
+                    const rasio = Math.min(pW / img.width, pH / img.height);
+                    doc.addImage(img, 'JPEG', (pW - img.width*rasio)/2, (pH - img.height*rasio)/2, img.width*rasio, img.height*rasio); res();
+                }; img.src = rawUrl;
+            });
+        }
+        doc.save(`Gambar_Gabung_Delta.pdf`); statusJpg.textContent = "✅ Berhasil digabung & diunduh!"; statusJpg.className = "status-box status-success";
+    } else {
+        for(let i=0; i<imageFiles.length; i++) {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            const rawUrl = await membacaBerkasDataURL(imageFiles[i]);
+            await new Promise((res) => {
+                const img = new Image(); img.onload = () => { doc.addImage(img, 'JPEG', 10, 10, 190, 190*img.height/img.width); res(); }; img.src = rawUrl;
+            });
+            const linkUrl = URL.createObjectURL(doc.output('blob')); const li = document.createElement('li');
+            li.innerHTML = `<a href="${linkUrl}" download="Gambar_${i+1}.pdf" class="download-link"><span>📋 Dokumen PDF ${i+1}</span><span class="download-action">Unduh PDF</span></a>`;
+            downloadListJpg.appendChild(li);
+        }
+        statusJpg.textContent = "✅ Berhasil dibuat!"; statusJpg.className = "status-box status-success"; resultAreaJpg.style.display = "block";
+    } convertJpgBtn.disabled = false;
+});
+
+// PDF MERGER
+const mergeFilesInput = document.getElementById('mergeFiles'); const dropAreaMerge = document.getElementById('dropAreaMerge');
+const selectedMergeFilesList = document.getElementById('selectedMergeFilesList'); const mergePdfBtn = document.getElementById('mergePdfBtn');
+const statusMerge = document.getElementById('statusMerge'); const resultAreaMerge = document.getElementById('resultAreaMerge');
+const downloadListMerge = document.getElementById('downloadListMerge'); 
+
+let filesToMerge = [];
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropAreaMerge.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }); });
+dropAreaMerge.addEventListener('drop', (e) => { if(e.dataTransfer.files.length) { tambahkanFileMerge(e.dataTransfer.files); } });
+mergeFilesInput.addEventListener('change', () => { if(mergeFilesInput.files.length) { tambahkanFileMerge(mergeFilesInput.files); } });
+
+function tambahkanFileMerge(files) {
+    const filesArray = Array.from(files);
+    const filesValid = filesArray.filter(file => cekUkuranFile(file));
+    
+    if(filesValid.length > 0) {
+        filesToMerge = filesToMerge.concat(filesValid);
+        perbaruiTampilanListMerge();
+    }
+    mergeFilesInput.value = "";
+}
+
+function perbaruiTampilanListMerge() {
+    selectedMergeFilesList.innerHTML = "";
+    if(filesToMerge.length >= 1) {
+        selectedMergeFilesList.style.display = "block";
+        filesToMerge.forEach((file, index) => {
+            const li = document.createElement('li'); 
+            li.innerHTML = `
+                <span><span class="file-index">${index + 1}</span> ${file.name}</span>
+                <div class="list-action-btns">
+                    <button onclick="geserMerge(${index}, -1)" title="Naikkan Urutan">▲</button>
+                    <button onclick="geserMerge(${index}, 1)" title="Turunkan Urutan">▼</button>
+                    <button class="btn-list-del" onclick="hapusMerge(${index})" title="Hapus PDF">✕</button>
+                </div>
+            `; 
+            selectedMergeFilesList.appendChild(li);
+        });
+        if(filesToMerge.length >= 2) {
+            statusMerge.textContent = `${filesToMerge.length} file PDF siap digabungkan. Sesuaikan urutan jika diperlukan.`; 
+            statusMerge.className = "status-box status-success"; 
+        } else {
+            statusMerge.textContent = "Minimal pilih 2 file PDF untuk digabungkan!"; 
+            statusMerge.className = "status-box status-error"; 
+        }
+        resultAreaMerge.style.display = "none";
+    } else { 
+        selectedMergeFilesList.style.display = "none"; 
+        statusMerge.textContent = "Menunggu berkas..."; 
+        statusMerge.className = "status-box status-info"; 
+    }
+}
+
+window.geserMerge = function(index, arah) {
+    const targetIndex = index + arah;
+    if (targetIndex < 0 || targetIndex >= filesToMerge.length) return;
+    const temp = filesToMerge[index];
+    filesToMerge[index] = filesToMerge[targetIndex];
+    filesToMerge[targetIndex] = temp;
+    perbaruiTampilanListMerge();
+};
+
+window.hapusMerge = function(index) {
+    filesToMerge.splice(index, 1);
+    perbaruiTampilanListMerge();
+};
+
+mergePdfBtn.addEventListener('click', async () => {
+    if(filesToMerge.length < 2) return alert('Pilih minimal 2 file PDF!');
+    mergePdfBtn.disabled = true; downloadListMerge.innerHTML = "";
+    try {
+        const mergedPdf = await PDFLib.PDFDocument.create();
+        for(let i = 0; i < filesToMerge.length; i++) {
+            statusMerge.textContent = `Menggabungkan (${i+1}/${filesToMerge.length})...`;
+            const fileBytes = await filesToMerge[i].arrayBuffer(); const pdfDoc = await PDFLib.PDFDocument.load(fileBytes);
+            const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices()); copiedPages.forEach((page) => mergedPdf.addPage(page));
+        }
+        const mergedPdfBytes = await mergedPdf.save(); const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+        const downloadUrl = URL.createObjectURL(blob); const li = document.createElement('li');
+        li.innerHTML = `<a href="${downloadUrl}" download="Delta_Merged_Document.pdf" class="download-link"><span>Merged_Document_${Date.now().toString().slice(-4)}.pdf</span><span class="download-action">Unduh PDF</span></a>`;
+        downloadListMerge.appendChild(li); statusMerge.textContent = "✅ Semua file PDF berhasil digabungkan!"; statusMerge.className = "status-box status-success"; resultAreaMerge.style.display = "block";
+    } catch(err) { statusMerge.textContent = "Terjadi kesalahan penggabungan."; statusMerge.className = "status-box status-error"; }
+    finally { mergePdfBtn.disabled = false; }
+});
+
+function b64toBlob(b64Data, contentType='') {
+    const byteCharacters = atob(b64Data); const byteArrays = [];
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+        const slice = byteCharacters.slice(offset, offset + 512); const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) byteNumbers[i] = slice.charCodeAt(i);
+        byteArrays.push(new Uint8Array(byteNumbers));
+    } return new Blob(byteArrays, {type: contentType});
+}
+function membacaBerkasDataURL(file) { return new Promise((resolve) => { const reader = new FileReader(); reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); }); }
+document.querySelectorAll('#modeJpgGroup .option-btn').forEach(b => { b.addEventListener('click', () => { document.querySelectorAll('#modeJpgGroup .option-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); }); });
+
+rekamEventInput();
 </script>
 </body>
 </html>
