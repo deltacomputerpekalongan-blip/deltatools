@@ -226,7 +226,7 @@ footer { padding: 14px 24px; font-size: 13px; color: var(--bluey-dark-blue); mar
 /* Area Seret Drop Berkas */
 .drop-area { border: 3px dashed var(--bluey-sky); border-radius: 24px; padding: 32px 20px; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(255, 255, 255, 0.05); margin-bottom: 16px; position: relative; }
 .drop-area.highlight { border-color: var(--bluey-yellow); background: rgba(255, 203, 5, 0.15); }
-.drop-area:hover { border-color: var(--bluey-yellow); background: rgba(255, 255, 255, 0.08); }
+.drop-area:hover { border-color: var(--bluey-yellow); background: rgba(255, 203, 5, 0.08); }
 .file-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .upload-icon { font-size: 42px; color: var(--bluey-sky); margin-bottom: 8px; }
 .drop-text { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: #FFF; }
@@ -518,7 +518,7 @@ canvas { display: none; }
     <div class="inv-footer">Terima Kasih Atas Kunjungan Anda<br>Delta Computer & Printing</div>
 </div>
 
-<!-- Modal Pratinjau Nota / QRIS Modal Popup -->
+<!-- Modal Pratinjau Nota / QRIS / Edit Pembayaran Modal Popup -->
 <div class="modal-preview" id="modalPreview">
     <div class="modal-content">
         <span class="modal-close" id="closeModal">&times;</span>
@@ -831,13 +831,15 @@ function tampilkanRiwayat(filter = '') {
     filteredData.forEach(item => {
         const userDisplay = item.user ? item.user : 'Umum';
         const statusColor = item.status === 'KURANG' ? '#ef4444' : '#10b981';
+        const statusPekerjaanBadge = item.statusPekerjaan ? `<span style="font-size:11px; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:12px; margin-left:4px; font-weight:800;">🛠️ ${item.statusPekerjaan}</span>` : '';
         const div = document.createElement('div'); div.className = 'item';
         div.innerHTML = `
-            <b>${item.tanggal}</b> <span style="font-size:11px; background:var(--bluey-sky); color:var(--bluey-dark-blue); padding:2px 8px; border-radius:12px; margin-left:5px; font-weight:800;">👤 ${userDisplay}</span><span class="menu">⋮</span><br>
+            <b>${item.tanggal}</b> <span style="font-size:11px; background:var(--bluey-sky); color:var(--bluey-dark-blue); padding:2px 8px; border-radius:12px; margin-left:5px; font-weight:800;">👤 ${userDisplay}</span>${statusPekerjaanBadge}<span class="menu">⋮</span><br>
             ${formatRupiah(item.total)} - <span style="color:${statusColor}; font-weight:800;">${item.status}</span>
             <details>
                 <summary>Aksi Dokumen</summary>
                 <div class="export" style="margin-top: 6px;">
+                    <a onclick="editPembayaranNota('${item.firebaseKey}')" style="color: #FF8019; font-weight: 800;">✏️ Edit Pembayaran</a>
                     <a onclick="pratinjauNota(${item.id})">📄 Pratinjau Nota</a>
                     <a onclick="eksportTXT(${item.id})">📥 Cetak TXT</a>
                     <a onclick="eksportPNG(${item.id})">💾 Cetak PNG</a>
@@ -848,6 +850,102 @@ function tampilkanRiwayat(filter = '') {
         listRiwayat.appendChild(div);
     });
 }
+
+/* FITUR UPDATE PEMBAYARAN NOTA DENGAN STATUS PEKERJAAN REALTIME */
+window.editPembayaranNota = function(firebaseKey) {
+    const tx = dataRiwayat.find(item => item.firebaseKey === firebaseKey);
+    if (!tx) return;
+
+    const userDisplay = tx.user ? tx.user : 'Umum';
+    const totalTagihan = tx.total || 0;
+    const bayarSaatIni = tx.bayar || 0;
+    const statusPekerjaanSaatIni = tx.statusPekerjaan || '';
+
+    const htmlContent = `
+        <div style="font-weight: 700; color: var(--bluey-dark-blue);">
+            <div style="background: var(--bluey-cream); padding: 12px; border-radius: 16px; border: 2px solid var(--bluey-sky); margin-bottom: 14px; font-size: 13px;">
+                <div><b>ID Transaksi:</b> ${tx.id}</div>
+                <div><b>Kasir:</b> ${userDisplay}</div>
+                <div><b>Tanggal:</b> ${tx.tanggal}</div>
+                <div style="font-size: 15px; margin-top: 4px; color: var(--bluey-mid-blue);"><b>Total Tagihan:</b> ${formatRupiah(totalTagihan)}</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <label style="font-size: 13px; font-weight: 800;">Input Nominal Bayar Baru (Rp):</label>
+                <input type="text" id="input-edit-bayar" value="${formatInputRibuan(bayarSaatIni)}" style="width: 100%; text-align: right; font-size: 16px; font-weight: 800;">
+
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #F4FAFF; padding: 10px 14px; border-radius: 14px; border: 2px solid var(--bluey-sky); margin-top: 4px;">
+                    <span id="lbl-edit-kembalian" style="font-size: 13px; font-weight: 800;">Kembalian:</span>
+                    <span id="txt-edit-kembalian" style="font-size: 15px; font-weight: 800;">Rp0</span>
+                </div>
+
+                <div style="margin-top: 4px;">
+                    <label style="font-size: 13px; font-weight: 800; display: block; margin-bottom: 4px;">Status Pekerjaan <span style="font-weight: normal; color: #6182A6;">(opsional)</span>:</label>
+                    <select id="select-edit-status-pekerjaan" style="width: 100%;">
+                        <option value="" ${statusPekerjaanSaatIni === '' ? 'selected' : ''}>Tidak membuat pekerjaan</option>
+                        <option value="Menunggu" ${statusPekerjaanSaatIni === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
+                        <option value="Diproses" ${statusPekerjaanSaatIni === 'Diproses' ? 'selected' : ''}>Diproses</option>
+                        <option value="Selesai" ${statusPekerjaanSaatIni === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                        <option value="Diambil" ${statusPekerjaanSaatIni === 'Diambil' ? 'selected' : ''}>Diambil</option>
+                    </select>
+                </div>
+
+                <button id="btn-simpan-edit-pembayaran" style="margin-top: 8px; background: var(--bluey-orange); box-shadow: 0 4px 0 #C45B00;">💾 Perbarui Kondisi Nota</button>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('modalTitle').innerText = "✏️ Edit Pembayaran & Status Pekerjaan";
+    document.getElementById('modalInvoiceBody').innerHTML = htmlContent;
+    document.getElementById('modalPreview').style.display = 'flex';
+
+    const inputEditBayar = document.getElementById('input-edit-bayar');
+    const txtEditKembalian = document.getElementById('txt-edit-kembalian');
+    const lblEditKembalian = document.getElementById('lbl-edit-kembalian');
+    const selectStatusPekerjaan = document.getElementById('select-edit-status-pekerjaan');
+    const btnSimpanEdit = document.getElementById('btn-simpan-edit-pembayaran');
+
+    function hitungEditKembalian() {
+        const bayarVal = parseFloat(inputEditBayar.value.replace(/\./g, '')) || 0;
+        const selisih = bayarVal - totalTagihan;
+
+        if (selisih < 0) {
+            lblEditKembalian.innerText = 'Kekurangan:';
+            txtEditKembalian.innerText = formatRupiah(Math.abs(selisih));
+            txtEditKembalian.style.color = '#ef4444';
+        } else {
+            lblEditKembalian.innerText = 'Kembalian:';
+            txtEditKembalian.innerText = formatRupiah(selisih);
+            txtEditKembalian.style.color = 'var(--bluey-dark-blue)';
+        }
+    }
+
+    hitungEditKembalian();
+
+    inputEditBayar.addEventListener('input', function() {
+        this.value = formatInputRibuan(this.value);
+        hitungEditKembalian();
+    });
+
+    btnSimpanEdit.addEventListener('click', () => {
+        const bayarBaru = parseFloat(inputEditBayar.value.replace(/\./g, '')) || 0;
+        const statusBaru = bayarBaru < totalTagihan ? 'KURANG' : 'LUNAS';
+        const kembalianBaru = bayarBaru - totalTagihan;
+        const statusPekerjaanVal = selectStatusPekerjaan.value;
+
+        riwayatRef.child(firebaseKey).update({
+            bayar: bayarBaru,
+            status: statusBaru,
+            kembalian: kembalianBaru,
+            statusPekerjaan: statusPekerjaanVal.trim() !== '' ? statusPekerjaanVal : null
+        }).then(() => {
+            alert('✅ Kondisi nota & status pekerjaan berhasil diperbarui!');
+            document.getElementById('modalPreview').style.display = 'none';
+        }).catch(err => {
+            alert('❌ Gagal memperbarui data: ' + err);
+        });
+    });
+};
 
 window.pratinjauNota = function(id) {
     const tx = dataRiwayat.find(item => item.id === id); if (!tx) return;
