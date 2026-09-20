@@ -797,6 +797,9 @@ btnSimpan.addEventListener('click', () => {
         user: selectUser.value,
         tanggal: dapatkanTanggalHariIni(),
         total: totalBelanja,
+        bayar1: bayar,
+        bayar2: 0,
+        bayar3: 0,
         bayar: bayar,
         kembalian: bayar - totalBelanja,
         status: statusTransaksi,
@@ -851,14 +854,18 @@ function tampilkanRiwayat(filter = '') {
     });
 }
 
-/* FITUR UPDATE PEMBAYARAN NOTA DENGAN STATUS PEKERJAAN REALTIME */
+/* FITUR UPDATE PEMBAYARAN BERTAHAP (PEMBAYARAN 1 TERKUNCI) */
 window.editPembayaranNota = function(firebaseKey) {
     const tx = dataRiwayat.find(item => item.firebaseKey === firebaseKey);
     if (!tx) return;
 
     const userDisplay = tx.user ? tx.user : 'Umum';
     const totalTagihan = tx.total || 0;
-    const bayarSaatIni = tx.bayar || 0;
+    
+    // Pembayaran 1 mengambil nominal bayar awal dan dikunci (readonly)
+    const bayar1 = tx.bayar1 !== undefined ? tx.bayar1 : (tx.bayar || 0);
+    const bayar2 = tx.bayar2 || 0;
+    const bayar3 = tx.bayar3 || 0;
     const statusPekerjaanSaatIni = tx.statusPekerjaan || '';
 
     const htmlContent = `
@@ -871,14 +878,37 @@ window.editPembayaranNota = function(firebaseKey) {
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 10px;">
-                <label style="font-size: 13px; font-weight: 800;">Input Nominal Bayar Baru (Rp):</label>
-                <input type="text" id="input-edit-bayar" value="${formatInputRibuan(bayarSaatIni)}" style="width: 100%; text-align: right; font-size: 16px; font-weight: 800;">
-
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #F4FAFF; padding: 10px 14px; border-radius: 14px; border: 2px solid var(--bluey-sky); margin-top: 4px;">
-                    <span id="lbl-edit-kembalian" style="font-size: 13px; font-weight: 800;">Kembalian:</span>
-                    <span id="txt-edit-kembalian" style="font-size: 15px; font-weight: 800;">Rp0</span>
+                <!-- Pembayaran 1 (Locked / Readonly) -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 800; color: #6182A6;">Pembayaran 1 (Awal - Terkunci):</label>
+                    <input type="text" id="input-edit-bayar1" value="${formatInputRibuan(bayar1)}" readonly style="width: 100%; text-align: right; font-size: 15px; font-weight: 800; background: #E2E8F0; color: #64748B; cursor: not-allowed; border-color: #CBD5E1;">
                 </div>
 
+                <!-- Pembayaran 2 -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 800;">Pembayaran 2 (Tambahan):</label>
+                    <input type="text" id="input-edit-bayar2" value="${formatInputRibuan(bayar2)}" style="width: 100%; text-align: right; font-size: 15px; font-weight: 800;">
+                </div>
+
+                <!-- Pembayaran 3 -->
+                <div>
+                    <label style="font-size: 12px; font-weight: 800;">Pembayaran 3 (Pelunasan / Tambahan):</label>
+                    <input type="text" id="input-edit-bayar3" value="${formatInputRibuan(bayar3)}" style="width: 100%; text-align: right; font-size: 15px; font-weight: 800;">
+                </div>
+
+                <!-- Ringkasan Total & Sisa Tagihan -->
+                <div style="background: #F4FAFF; padding: 12px; border-radius: 16px; border: 2px solid var(--bluey-sky); margin-top: 4px; display: flex; flex-direction: column; gap: 6px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span>Total Akumulasi Bayar:</span>
+                        <span id="txt-edit-total-bayar" style="font-weight: 800;">Rp0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; border-top: 1px dashed var(--bluey-sky); padding-top: 6px;">
+                        <span id="lbl-edit-kembalian" style="font-weight: 800;">Sisa Kekurangan:</span>
+                        <span id="txt-edit-kembalian" style="font-weight: 800;">Rp0</span>
+                    </div>
+                </div>
+
+                <!-- Status Pekerjaan -->
                 <div style="margin-top: 4px;">
                     <label style="font-size: 13px; font-weight: 800; display: block; margin-bottom: 4px;">Status Pekerjaan <span style="font-weight: normal; color: #6182A6;">(opsional)</span>:</label>
                     <select id="select-edit-status-pekerjaan" style="width: 100%;">
@@ -890,27 +920,36 @@ window.editPembayaranNota = function(firebaseKey) {
                     </select>
                 </div>
 
-                <button id="btn-simpan-edit-pembayaran" style="margin-top: 8px; background: var(--bluey-orange); box-shadow: 0 4px 0 #C45B00;">💾 Perbarui Kondisi Nota</button>
+                <button id="btn-simpan-edit-pembayaran" style="margin-top: 8px; background: var(--bluey-orange); box-shadow: 0 4px 0 #C45B00;">💾 Perbarui Kondisi Pembayaran</button>
             </div>
         </div>
     `;
 
-    document.getElementById('modalTitle').innerText = "✏️ Edit Pembayaran & Status Pekerjaan";
+    document.getElementById('modalTitle').innerText = "✏️ Edit Pembayaran Bertahap & Status";
     document.getElementById('modalInvoiceBody').innerHTML = htmlContent;
     document.getElementById('modalPreview').style.display = 'flex';
 
-    const inputEditBayar = document.getElementById('input-edit-bayar');
+    const inputBayar1 = document.getElementById('input-edit-bayar1');
+    const inputBayar2 = document.getElementById('input-edit-bayar2');
+    const inputBayar3 = document.getElementById('input-edit-bayar3');
+    const txtTotalBayar = document.getElementById('txt-edit-total-bayar');
     const txtEditKembalian = document.getElementById('txt-edit-kembalian');
     const lblEditKembalian = document.getElementById('lbl-edit-kembalian');
     const selectStatusPekerjaan = document.getElementById('select-edit-status-pekerjaan');
     const btnSimpanEdit = document.getElementById('btn-simpan-edit-pembayaran');
 
-    function hitungEditKembalian() {
-        const bayarVal = parseFloat(inputEditBayar.value.replace(/\./g, '')) || 0;
-        const selisih = bayarVal - totalTagihan;
+    function hitungAkumulasiPembayaran() {
+        const val1 = parseFloat(inputBayar1.value.replace(/\./g, '')) || 0;
+        const val2 = parseFloat(inputBayar2.value.replace(/\./g, '')) || 0;
+        const val3 = parseFloat(inputBayar3.value.replace(/\./g, '')) || 0;
+        
+        const totalSudahBayar = val1 + val2 + val3;
+        const selisih = totalSudahBayar - totalTagihan;
+
+        txtTotalBayar.innerText = formatRupiah(totalSudahBayar);
 
         if (selisih < 0) {
-            lblEditKembalian.innerText = 'Kekurangan:';
+            lblEditKembalian.innerText = 'Sisa Kekurangan:';
             txtEditKembalian.innerText = formatRupiah(Math.abs(selisih));
             txtEditKembalian.style.color = '#ef4444';
         } else {
@@ -920,26 +959,35 @@ window.editPembayaranNota = function(firebaseKey) {
         }
     }
 
-    hitungEditKembalian();
+    hitungAkumulasiPembayaran();
 
-    inputEditBayar.addEventListener('input', function() {
-        this.value = formatInputRibuan(this.value);
-        hitungEditKembalian();
+    [inputBayar2, inputBayar3].forEach(input => {
+        input.addEventListener('input', function() {
+            this.value = formatInputRibuan(this.value);
+            hitungAkumulasiPembayaran();
+        });
     });
 
     btnSimpanEdit.addEventListener('click', () => {
-        const bayarBaru = parseFloat(inputEditBayar.value.replace(/\./g, '')) || 0;
-        const statusBaru = bayarBaru < totalTagihan ? 'KURANG' : 'LUNAS';
-        const kembalianBaru = bayarBaru - totalTagihan;
+        const val1 = parseFloat(inputBayar1.value.replace(/\./g, '')) || 0;
+        const val2 = parseFloat(inputBayar2.value.replace(/\./g, '')) || 0;
+        const val3 = parseFloat(inputBayar3.value.replace(/\./g, '')) || 0;
+        
+        const totalAkumulasiBayar = val1 + val2 + val3;
+        const statusBaru = totalAkumulasiBayar < totalTagihan ? 'KURANG' : 'LUNAS';
+        const kembalianBaru = totalAkumulasiBayar - totalTagihan;
         const statusPekerjaanVal = selectStatusPekerjaan.value;
 
         riwayatRef.child(firebaseKey).update({
-            bayar: bayarBaru,
+            bayar1: val1,
+            bayar2: val2,
+            bayar3: val3,
+            bayar: totalAkumulasiBayar,
             status: statusBaru,
             kembalian: kembalianBaru,
             statusPekerjaan: statusPekerjaanVal.trim() !== '' ? statusPekerjaanVal : null
         }).then(() => {
-            alert('✅ Kondisi nota & status pekerjaan berhasil diperbarui!');
+            alert('✅ Update pembayaran bertahap berhasil disimpan!');
             document.getElementById('modalPreview').style.display = 'none';
         }).catch(err => {
             alert('❌ Gagal memperbarui data: ' + err);
